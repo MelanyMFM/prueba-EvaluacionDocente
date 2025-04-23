@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 
-const EstudiantePage = () => {
+function EstudiantePage(){
   const {
     isSurveyActive,
     questions,
@@ -9,41 +9,70 @@ const EstudiantePage = () => {
     setResponses
   } = useAppContext();
 
-  const estudianteId = 'mockEstudiante123'; // simulación sin login
-  const yaRespondio = responses[estudianteId] !== undefined;
-
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [studentId, setStudentId] = useState('');
   const [answers, setAnswers] = useState(Array(questions.length).fill(0));
 
-  const handleAnswerChange = (index, value) => {
+  function handleLogin(e){
+    e.preventDefault();
+    if (studentId.trim()) {
+      setIsAuthenticated(true);
+    }
+  };
+
+  function handlePregunta(index, value){
     const newAnswers = [...answers];
     newAnswers[index] = parseInt(value);
     setAnswers(newAnswers);
   };
 
-  const handleSubmit = () => {
+  function handleEnviar(){
     if (answers.some(a => a === 0)) {
-      alert("Debes responder todas las preguntas.");
+      alert("responder todas las preguntas");
       return;
     }
-    setResponses(prev => ({ ...prev, [estudianteId]: answers }));
-    alert("Encuesta enviada con éxito.");
+    setResponses(prev => ({ ...prev, [studentId]: answers }));
   };
 
-  if (!isSurveyActive) {
-    return <h2>La encuesta no está disponible en este momento.</h2>;
+  if (!isAuthenticated) {
+    return (
+      <div>
+        <h2>Ingreso de Estudiante</h2>
+        <form onSubmit={handleLogin}>
+          <div>
+            <label>ID de Estudiante: </label>
+            <input
+              type="text"
+              value={studentId}
+              onChange={(e) => setStudentId(e.target.value)}
+              required
+            />
+          </div>
+          <button type="submit">Ingresar</button>
+        </form>
+      </div>
+    );
   }
 
-  if (yaRespondio) {
-    return <h2>Ya has respondido esta encuesta. ¡Gracias por tu participación!</h2>;
+  if (!isSurveyActive) {
+    return <h2>La encuesta está desactivada</h2>;
+  }
+
+  if (responses[studentId]) {
+    return <h2>Ya respondio la encuesta</h2>;
   }
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>Encuesta Docente</h2>
+    <div>
+      <h2>Encuesta de Evaluación Docente</h2>
+      <p>Estudiante: {studentId}</p>
       {questions.map((q, idx) => (
-        <div key={idx} style={{ marginBottom: '15px' }}>
+        <div key={idx}>
           <p>{q}</p>
-          <select value={answers[idx]} onChange={(e) => handleAnswerChange(idx, e.target.value)}>
+          <select 
+            value={answers[idx]} 
+            onChange={(e) => handlePregunta(idx, e.target.value)}
+          >
             <option value={0}>Selecciona una opción</option>
             <option value={1}>1 - Muy mal</option>
             <option value={2}>2 - Mal</option>
@@ -53,7 +82,7 @@ const EstudiantePage = () => {
           </select>
         </div>
       ))}
-      <button onClick={handleSubmit}>Enviar Encuesta</button>
+      <button onClick={handleEnviar}>Enviar Encuesta</button>
     </div>
   );
 };

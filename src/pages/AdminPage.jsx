@@ -1,14 +1,15 @@
 import { useAppContext } from '../context/AppContext';
 import { useState } from 'react';
+import EstadoEncuesta from '../components/EstadoEncuesta';
+import EditorPreguntas from '../components/EditorPreguntas';
+import ResultadosEncuesta from '../components/ResultadosEncuesta';
 
-const AdminPage = () => {
+function AdminPage(){
   const {
     isSurveyActive,
     setIsSurveyActive,
     questions,
     setQuestions,
-    surveyWeight,
-    setSurveyWeight,
     responses,
     finalScores,
     setFinalScores,
@@ -18,29 +19,32 @@ const AdminPage = () => {
     setQuestionWeights
   } = useAppContext();
   
-
   const [editedQuestions, setEditedQuestions] = useState(questions);
-  const [localWeight, setLocalWeight] = useState(surveyWeight);
 
-  const toggleSurvey = () => {
-    setIsSurveyActive(prev => !prev);
+  function toggleEncuesta(){
+    setIsSurveyActive(estado => !estado);
   };
 
-  const handleQuestionChange = (index, value) => {
+  function handleCambioPregunta(index, value) {
     const newQuestions = [...editedQuestions];
     newQuestions[index] = value;
     setEditedQuestions(newQuestions);
   };
 
-  const saveChanges = () => {
+  function handleCambioPeso(index, value){
+    const nuevosPesos = [...pesos];
+    nuevosPesos[index] = value;
+    setQuestionWeights(nuevosPesos);
+  };
+
+  function guardarCambios(){
     setQuestions(editedQuestions);
-    setSurveyWeight(localWeight);
     alert("Cambios guardados");
   };
 
-  const calculateResults = () => {
+  function calcularResultados(){
     if (resultsPublished) {
-      alert("Los resultados ya fueron calculados.");
+      alert("Ya se calcularon los resultados");
       return;
     }
   
@@ -48,7 +52,6 @@ const AdminPage = () => {
     let cantidad = 0;
   
     Object.values(responses).forEach(resp => {
-      // resp es un arreglo de respuestas del estudiante (de 0 a 5)
       let notaEstudiante = 0;
   
       for (let i = 0; i < resp.length; i++) {
@@ -60,73 +63,44 @@ const AdminPage = () => {
     });
   
     const promedio = cantidad > 0 ? total / cantidad : 0;
-    const notaFinal = parseFloat(((promedio * surveyWeight) / 100).toFixed(2));
+    const notaFinal = parseFloat((promedio / 5).toFixed(2));
   
     setFinalScores({ docente1: notaFinal });
     setResultsPublished(true);
     setIsSurveyActive(false);
-    alert("Resultados calculados y publicados");
   };
-  
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>Panel del Administrador</h2>
+    <div>
+      <h2>Admin</h2>
 
-      <div style={{ marginBottom: '20px' }}>
-        <h3>Estado de la encuesta</h3>
-        <p>Encuesta actualmente: <strong>{isSurveyActive ? 'Activa' : 'Inactiva'}</strong></p>
-        <button onClick={toggleSurvey}>
-          {isSurveyActive ? 'Desactivar' : 'Activar'} Encuesta
+      <EstadoEncuesta 
+        isSurveyActive={isSurveyActive} 
+        onToggle={toggleEncuesta} 
+      />
+
+      <EditorPreguntas 
+        questions={editedQuestions}
+        weights={questionWeights}
+        onQuestionChange={handleCambioPregunta}
+        onWeightChange={handleCambioPeso}
+      />
+
+      <div>
+        <button onClick={guardarCambios}>Guardar Cambios</button>
+        <button 
+          onClick={calcularResultados}
+          disabled={resultsPublished || Object.keys(responses).length === 0}
+        >
+          Calcular Resultados
         </button>
       </div>
 
-      <div style={{ marginBottom: '20px' }}>
-        <h3>Editar preguntas</h3>
-
-        
-        {editedQuestions.map((q, idx) => (
-  <div key={idx} style={{ marginBottom: '10px' }}>
-    <label>Pregunta {idx + 1}: </label>
-    <input
-      type="text"
-      value={q}
-      onChange={(e) => handleQuestionChange(idx, e.target.value)}
-      style={{ marginRight: '10px' }}
-    />
-    <label>Peso: </label>
-    <input
-      type="number"
-      step="0.1"
-      value={questionWeights[idx]}
-      onChange={(e) => {
-        const newWeights = [...questionWeights];
-        newWeights[idx] = parseFloat(e.target.value);
-        setQuestionWeights(newWeights);
-      }}
-    />
-  </div>
-))}
-
-      </div>
-
-      <div style={{ marginBottom: '20px' }}>
-        <h3>Valor de la encuesta en la nota final (%)</h3>
-        <input
-          type="number"
-          value={localWeight}
-          onChange={(e) => setLocalWeight(parseInt(e.target.value))}
-        />
-      </div>
-
-      <button onClick={saveChanges} style={{ marginRight: '10px' }}>Guardar Cambios</button>
-      <button onClick={calculateResults}>Calcular Resultados</button>
-
       {resultsPublished && (
-        <div style={{ marginTop: '20px' }}>
-          <h3>Resultados publicados</h3>
-          <p>Docente 1 - Nota: <strong>{finalScores.docente1}</strong></p>
-        </div>
+        <ResultadosEncuesta 
+          finalScores={finalScores}
+          totalResponses={Object.keys(responses).length}
+        />
       )}
     </div>
   );
