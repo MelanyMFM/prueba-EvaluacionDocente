@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import RoleSelector from "./components/RoleSelector";
-import EstudiantePage from "./pages/EstudiantePage";
+import RoleSelector from "./components/RoleSelector/RoleSelector";
+import EstudiantePage from "./pages/EstudiantePage/EstudiantePage";
 import AdminPage from "./pages/AdminPage";
 import DocentePage from "./pages/DocentePage";
 

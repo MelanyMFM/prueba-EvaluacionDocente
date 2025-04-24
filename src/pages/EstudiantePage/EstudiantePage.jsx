@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useAppContext } from '../context/AppContext';
+import { useAppContext } from '../../context/AppContext';
+import "./estudiantePage.css";
 
 function EstudiantePage(){
   const {
@@ -36,7 +37,9 @@ function EstudiantePage(){
 
   if (!isAuthenticated) {
     return (
-      <div>
+      <div className='estudiantePage'>
+        <h1 style={{ fontSize: '3.5rem' }}>Evaluación Docente Integral con Fines de Mejoramiento</h1>
+        
         <h2>Ingreso de Estudiante</h2>
         <form onSubmit={handleLogin}>
           <div>
@@ -63,7 +66,7 @@ function EstudiantePage(){
   }
 
   return (
-    <div>
+    <div className='estudiantePage'>
       <h2>Encuesta de Evaluación Docente</h2>
       <p>Estudiante: {studentId}</p>
       {questions.map((q, idx) => (

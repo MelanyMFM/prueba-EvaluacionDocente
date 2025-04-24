@@ -1,0 +1,86 @@
+.rol-button {
+    display: flex;
+    flex-direction: column;
+    color: rgb(148, 180, 59);
+    vertical-align: baseline;
+    cursor: pointer;
+    font-family: "Ancizar sans", Tahoma, Geneva, sans-serif;
+    padding: 10px !important;
+    margin-bottom: 10px !important;
+    font-size: 1.5rem;
+    border-color: #dcdcdc;
+    width: 30%;
+
+    .text-center {
+        text-align: center !important;
+        font-family: "Ancizar serif", "MS Serif", "New York", serif;
+    }
+    .text-center:hover {
+        color: black;
+    }
+
+    
+}
+
+
+.panelRol {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 3rem;
+}
+
+.roles-alerta {
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+}
+
+.roles-lista {
+    display: flex;
+}
+
+.rol-selector{
+    width: 100%;
+    background-color: #DDDDDD;
+}
+
+.alert-success {
+    background-image: linear-gradient(to bottom, #dff0d8 0, #c8e5bc 100%);
+    background-repeat: repeat-x;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, .2);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25), 0 1px 2px rgba(0, 0, 0, .05);
+    text-align: center !important;
+    border-color: #b2dba1;
+    width:86%;
+    position: relative;
+    padding: .75rem 1.25rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: .25rem;
+}
+
+.list-group-item {
+    position: relative;
+    width: 100%;
+    padding-right: 15px;
+    padding-left: 15px;
+    line-height: 1.125em;
+
+    list-style: none;
+
+    max-width: 80%;
+    width: 20rem;
+}
+
+ul {
+    margin: 0;
+    padding: 0;
+}
+
+@media (max-width: 768px) {
+    .panelRol {
+        flex-direction: column;
+        align-items: center;
+    }
+
+}
