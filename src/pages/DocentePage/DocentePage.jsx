@@ -1,4 +1,5 @@
 import { useAppContext } from '../../context/AppContext';
+import ResultadosEncuesta from '../../components/ResultadosEncuesta';
 import "./docentePage.css";
 
 function DocentePage(){
@@ -12,8 +13,9 @@ function DocentePage(){
         <p className='waiting-message'>Los resultados aún no son publicados</p>
       ) : (   
         <>
-          <h3>La calificacion final es: {finalScores.docente1}</h3>
-          <p>Total de respuestas: {Object.keys(responses).length}</p>
+          <ResultadosEncuesta
+            totalResponses={Object.keys(responses).length}
+            finalScores={finalScores}/>
         </>
       )}
     </div>

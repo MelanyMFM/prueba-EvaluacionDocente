@@ -12,12 +12,12 @@ function RoleSelector(){
       <h1 className='titulo-rolselector'>Evaluación Docente Integral con Fines de Mejoramiento</h1>
       <div className='panelRol'>
 
-      <div class="col-lg-3">
-      <ul class="list-group">
-        <li class="list-group-item text-center">
+      <div className="col-lg-3">
+      <ul className="list-group">
+        <li className="list-group-item text-center">
           <h2>Bienvenido(a) a EDIFICANDO</h2>
         </li>
-        <li class="list-group-item text-justify">
+        <li className="list-group-item text-justify">
           <p>
             EDIFICANDO es el conjunto de instrumentos, aplicaciones y procesos
             de la Universidad Nacional de Colombia que permite entregarle
@@ -26,7 +26,7 @@ function RoleSelector(){
             mediante la valiosa participación de diferentes
             perspectivas de la comunidad académica.</p>
         </li>
-        <li class="list-group-item text-justify">
+        <li className="list-group-item text-justify">
           <p>
             Esta información deberá analizarse y valorarse en
             conjunto y de manera integral e integrada, con el objeto
@@ -37,23 +37,23 @@ function RoleSelector(){
         </li>
       </ul>
     </div>
-    <div class="roles-alerta">
+    <div className="roles-alerta">
     
-    <div class="alert alert-success text-center">
+    <div className="alert alert-success text-center">
             Para continuar, haga clic en su rol dentro de la comunidad académica.
       </div>
 
       <div className='roles-lista'>
           <button onClick={() => navigate('/estudiante')} className='rol-button'>
-            <h3 class="text-center">Estudiantes</h3>
+            <h3 className="text-center">Estudiantes</h3>
             <img src={estudiante} alt="estudiante" className="estudiante-image" />
           </button>
           <button onClick={() => navigate('/docente')} className='rol-button'>
-            <h3 class="text-center">Docentes</h3>
+            <h3 className="text-center">Docentes</h3>
             <img src={docente} alt="docente" className="docente-image" />
             </button>
           <button onClick={() => navigate('/admin')} className='rol-button'>
-            <h3 class="text-center">Directivas</h3>
+            <h3 className="text-center">Directivas</h3>
             <img src={directiva} alt="directiva" className="directiva-image" />
             </button>
 
