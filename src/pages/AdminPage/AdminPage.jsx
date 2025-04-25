@@ -72,7 +72,7 @@ function AdminPage(){
   };
 
   return (
-    <div>
+    <div className='admin-container'>
       <h2>Admin</h2>
 
       <EstadoEncuesta 
@@ -87,11 +87,12 @@ function AdminPage(){
         onWeightChange={handleCambioPeso}
       />
 
-      <div>
-        <button onClick={guardarCambios}>Guardar Cambios</button>
+      <div  className='actions-container'>
+        <button onClick={guardarCambios} className='action-button save-button'>Guardar Cambios</button>
         <button 
           onClick={calcularResultados}
           disabled={resultsPublished || Object.keys(responses).length === 0}
+          className='action-button calculate-button'
         >
           Calcular Resultados
         </button>

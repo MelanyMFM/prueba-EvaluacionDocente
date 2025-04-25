@@ -1,14 +1,15 @@
-import { useAppContext } from '../context/AppContext';
+import { useAppContext } from '../../context/AppContext';
+import "./docentePage.css";
 
 function DocentePage(){
   const { resultsPublished, finalScores, responses } = useAppContext();
   
   return (
-    <div>
+    <div className='docente-container'>
       <h2>Resultados de la Evaluación</h2>
       
       {!resultsPublished ? (
-        <p>Los resultados aún no son publicados</p>
+        <p className='waiting-message'>Los resultados aún no son publicados</p>
       ) : (   
         <>
           <h3>La calificacion final es: {finalScores.docente1}</h3>

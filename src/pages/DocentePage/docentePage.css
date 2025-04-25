@@ -1,0 +1,31 @@
+.docente-container {
+    width: 50%;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #ffffff;
+    border-radius: 4px;
+  }
+  
+.docente-container h2 {
+    font-size: 2rem;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  
+.waiting-message {
+    text-align: center;
+    padding: 2rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    color: #7f8c8d;
+  }
+
+  @media (max-width: 768px) {
+    .docente-container {
+      padding: 1.5rem;
+      margin: 1rem;
+      width: 90%;
+    }
+    
+  }

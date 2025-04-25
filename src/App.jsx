@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import RoleSelector from "./components/RoleSelector/RoleSelector";
 import EstudiantePage from "./pages/EstudiantePage/EstudiantePage";
 import AdminPage from "./pages/AdminPage/AdminPage";
-import DocentePage from "./pages/DocentePage";
+import DocentePage from "./pages/DocentePage/DocentePage";
 
 
 const App = () => {

@@ -1,6 +1,6 @@
 function EstadoEncuesta({ isSurveyActive, onToggle }){
   return (
-    <div>
+    <div className="estado-encuesta-container">
       <h3>Estado de la encuesta</h3>
       <p>Encuesta: <strong>{isSurveyActive ? 'Activa' : 'Inactiva'}</strong></p>
       <button onClick={onToggle}>
