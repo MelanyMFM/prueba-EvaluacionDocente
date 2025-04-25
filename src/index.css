@@ -1,0 +1,11 @@
+*{
+    font-family: "Ancizar serif", "MS Serif", "New York", serif;
+    padding: 0;
+}
+
+.html{
+    background-color: #ddd;
+    height: 100vh;
+    padding: 0;
+    margin: 0;
+}

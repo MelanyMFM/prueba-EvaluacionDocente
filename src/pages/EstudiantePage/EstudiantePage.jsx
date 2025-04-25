@@ -38,12 +38,12 @@ function EstudiantePage(){
   if (!isAuthenticated) {
     return (
       <div className='estudiantePage'>
-        <h1 style={{ fontSize: '3.5rem' }}>Evaluación Docente Integral con Fines de Mejoramiento</h1>
+        <h1>Evaluación Docente Integral con Fines de Mejoramiento</h1>
         
         <h2>Ingreso de Estudiante</h2>
         <form onSubmit={handleLogin}>
           <div>
-            <label>ID de Estudiante: </label>
+            <label>ID de Estudiante: (1-3)</label>
             <input
               type="text"
               value={studentId}
@@ -67,7 +67,7 @@ function EstudiantePage(){
 
   return (
     <div className='estudiantePage'>
-      <h2>Encuesta de Evaluación Docente</h2>
+      <h1>Encuesta de Evaluación Docente</h1>
       <p>Estudiante: {studentId}</p>
       {questions.map((q, idx) => (
         <div key={idx}>

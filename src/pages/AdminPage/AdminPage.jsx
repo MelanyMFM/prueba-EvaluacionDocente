@@ -1,8 +1,9 @@
-import { useAppContext } from '../context/AppContext';
+import { useAppContext } from '../../context/AppContext';
 import { useState } from 'react';
-import EstadoEncuesta from '../components/EstadoEncuesta';
-import EditorPreguntas from '../components/EditorPreguntas';
-import ResultadosEncuesta from '../components/ResultadosEncuesta';
+import EstadoEncuesta from '../../components/EstadoEncuesta';
+import EditorPreguntas from '../../components/EditorPreguntas';
+import ResultadosEncuesta from '../../components/ResultadosEncuesta';
+import './adminPage.css';
 
 function AdminPage(){
   const {

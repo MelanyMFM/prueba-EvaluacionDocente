@@ -22,27 +22,35 @@
     
 }
 
+.titulo-rolselector{
+    font-weight: normal;
+    background-color: #eee;
+    width: 93%;
+    text-align: center;
+    font-size: 3rem;
+    padding: 1rem 0;
+    border-radius: 4px;
+}
 
+.role-selector{
+    align-items: center;
+    padding: 5rem;
+}
 .panelRol {
     display: flex;
     justify-content: space-between;
-    padding: 0 3rem;
 }
 
 .roles-alerta {
     display: flex;
     flex-direction: column;
-    width: 80%;
+    width: 70%;
 }
 
 .roles-lista {
     display: flex;
 }
 
-.rol-selector{
-    width: 100%;
-    background-color: #DDDDDD;
-}
 
 .alert-success {
     background-image: linear-gradient(to bottom, #dff0d8 0, #c8e5bc 100%);
@@ -59,19 +67,18 @@
     border-radius: .25rem;
 }
 
-.list-group-item {
-    position: relative;
-    width: 100%;
-    padding-right: 15px;
-    padding-left: 15px;
-    line-height: 1.125em;
-
+.list-group {
     list-style: none;
-
-    max-width: 80%;
-    width: 20rem;
+    width: 100%;
+    background-color: #fff;
+    padding: 0.5rem  1rem;
+    font-weight: normal;
+    border-radius: 4px;
 }
-
+.col-lg-3{
+    width: 20%;
+    text-align: justify;
+}
 ul {
     margin: 0;
     padding: 0;
@@ -81,6 +88,10 @@ ul {
     .panelRol {
         flex-direction: column;
         align-items: center;
+    }
+    .col-lg-3{
+        width: 100%;
+        text-align: center;
     }
 
 }

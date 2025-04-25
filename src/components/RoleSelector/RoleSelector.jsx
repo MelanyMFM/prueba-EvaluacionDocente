@@ -9,7 +9,7 @@ function RoleSelector(){
 
   return (
     <div className="role-selector">
-      <h1>Evaluación Docente Integral con Fines de Mejoramiento</h1>
+      <h1 className='titulo-rolselector'>Evaluación Docente Integral con Fines de Mejoramiento</h1>
       <div className='panelRol'>
 
       <div class="col-lg-3">
