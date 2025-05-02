@@ -1,111 +1,96 @@
-import { useAppContext } from '../../context/AppContext';
-import { useState } from 'react';
-import EstadoEncuesta from '../../components/EstadoEncuesta';
-import EditorPreguntas from '../../components/EditorPreguntas';
-import ResultadosEncuesta from '../../components/ResultadosEncuesta';
-import './adminPage.css';
+import React, { useState, useContext } from 'react';
+import { AppContext } from '../../context/AppContext';
+import { useNavigate } from 'react-router-dom';
+import EncuestaTab from '../../components/AdminTabs/EncuestaTab';
+import PreguntasTab from '../../components/AdminTabs/PreguntasTab';
+import ResultadosTab from '../../components/AdminTabs/ResultadosTab';
+import ProgramacionTab from '../../components/AdminTabs/ProgramacionTab';
+import './AdminPage.css';
 
-function AdminPage(){
+function AdminPage() {
+  const navigate = useNavigate();
   const {
-    isSurveyActive,
-    setIsSurveyActive,
+    encuestaActiva,
+    setEncuestaActiva,
     questions,
     setQuestions,
-    responses,
-    finalScores,
-    setFinalScores,
-    resultsPublished,
-    setResultsPublished,
     questionWeights,
-    setQuestionWeights
-  } = useAppContext();
-  
-  const [editedQuestions, setEditedQuestions] = useState(questions);
+    setQuestionWeights,
+    resultsPublished,
+    publishResults,
+    responses,
+    results
+  } = useContext(AppContext);
 
-  function toggleEncuesta(){
-    setIsSurveyActive(estado => !estado);
-  };
-
-  function handleCambioPregunta(index, value) {
-    const newQuestions = [...editedQuestions];
-    newQuestions[index] = value;
-    setEditedQuestions(newQuestions);
-  };
-
-  function handleCambioPeso(index, value){
-    const nuevosPesos = [...pesos];
-    nuevosPesos[index] = value;
-    setQuestionWeights(nuevosPesos);
-  };
-
-  function guardarCambios(){
-    setQuestions(editedQuestions);
-    alert("Cambios guardados");
-  };
-
-  function calcularResultados(){
-    if (resultsPublished) {
-      alert("Ya se calcularon los resultados");
-      return;
-    }
-  
-    let total = 0;
-    let cantidad = 0;
-  
-    Object.values(responses).forEach(resp => {
-      let notaEstudiante = 0;
-  
-      for (let i = 0; i < resp.length; i++) {
-        notaEstudiante += resp[i] * questionWeights[i];
-      }
-  
-      total += notaEstudiante;
-      cantidad++;
-    });
-  
-    const promedio = cantidad > 0 ? total / cantidad : 0;
-    const notaFinal = parseFloat((promedio / 5).toFixed(2));
-  
-    setFinalScores({ docente1: notaFinal });
-    setResultsPublished(true);
-    setIsSurveyActive(false);
-  };
+  const [activeTab, setActiveTab] = useState('encuesta');
 
   return (
-    <div className='admin-container'>
-      <h2>Admin</h2>
-
-      <EstadoEncuesta 
-        isSurveyActive={isSurveyActive} 
-        onToggle={toggleEncuesta} 
-      />
-
-      <EditorPreguntas 
-        questions={editedQuestions}
-        weights={questionWeights}
-        onQuestionChange={handleCambioPregunta}
-        onWeightChange={handleCambioPeso}
-      />
-
-      <div  className='actions-container'>
-        <button onClick={guardarCambios} className='action-button save-button'>Guardar Cambios</button>
-        <button 
-          onClick={calcularResultados}
-          disabled={resultsPublished || Object.keys(responses).length === 0}
-          className='action-button calculate-button'
+    <div className="admin-container">
+      <h1>Panel de Administración</h1>
+      
+      <div className="admin-tabs">
+        <button
+          className={activeTab === 'encuesta' ? 'active' : ''}
+          onClick={() => setActiveTab('encuesta')}
         >
-          Calcular Resultados
+          Estado de la Encuesta
+        </button>
+        <button
+          className={activeTab === 'preguntas' ? 'active' : ''}
+          onClick={() => setActiveTab('preguntas')}
+        >
+          Preguntas
+        </button>
+        <button
+          className={activeTab === 'resultados' ? 'active' : ''}
+          onClick={() => setActiveTab('resultados')}
+        >
+          Resultados
+        </button>
+        <button
+          className={activeTab === 'programacion' ? 'active' : ''}
+          onClick={() => setActiveTab('programacion')}
+        >
+          Programación Académica
         </button>
       </div>
-
-      {resultsPublished && (
-        <ResultadosEncuesta 
-          finalScores={finalScores}
-          totalResponses={Object.keys(responses).length}
-        />
-      )}
+      
+      <div className="admin-content">
+        {activeTab === 'encuesta' && (
+          <EncuestaTab 
+            encuestaActiva={encuestaActiva} 
+            setEncuestaActiva={setEncuestaActiva} 
+          />
+        )}
+        
+        {activeTab === 'preguntas' && (
+          <PreguntasTab 
+            questions={questions}
+            setQuestions={setQuestions}
+            questionWeights={questionWeights}
+            setQuestionWeights={setQuestionWeights}
+          />
+        )}
+        
+        {activeTab === 'resultados' && (
+          <ResultadosTab 
+            resultsPublished={resultsPublished}
+            publishResults={publishResults}
+            responses={responses}
+            results={results}
+          />
+        )}
+        
+        {activeTab === 'programacion' && (
+          <ProgramacionTab />
+        )}
+      </div>
+      
+      <button onClick={() => navigate('/')} className="back-button">
+        Volver al Inicio
+      </button>
     </div>
   );
-};
+}
 
 export default AdminPage;
