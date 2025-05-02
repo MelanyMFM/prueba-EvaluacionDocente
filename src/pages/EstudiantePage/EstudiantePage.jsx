@@ -3,7 +3,7 @@ import { AppContext } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import LoginForm from "../../components/LoginForm/LoginForm";
 import CoursesList from '../../components/CoursesList/CoursesList';
-import EvaluationForm from '../../components/EstudiantePage/EvaluationForm';
+import EvaluationForm from '../../components/EvaluationForm/EvaluationForm';
 import MessageDisplay from "../../components/MessageDisplay";
 import './EstudiantePage.css';
 
@@ -28,14 +28,13 @@ function EstudiantePage() {
   const [studentCourses, setStudentCourses] = useState([]);
   const [submitted, setSubmitted] = useState(false);
 
-  // Verificar si el ID del estudiante es válido (RF2.1)
   const handleAuthentication = () => {
     const student = students.find(s => s.id === studentId);
     if (student) {
       setAuthenticated(true);
       setStudentInfo(student);
       
-      // Obtener cursos y docentes del estudiante (RF2.2)
+   
       const courses = getCoursesForStudent(studentId);
       setStudentCourses(courses);
     } else {
@@ -43,21 +42,20 @@ function EstudiantePage() {
     }
   };
 
-  // Manejar cambios en las respuestas (RF2.3)
+
   const handleAnswerChange = (index, value) => {
     const newAnswers = [...answers];
     newAnswers[index] = parseInt(value);
     setAnswers(newAnswers);
   };
 
-  // Seleccionar docente y curso
+
   const handleTeacherSelection = (teacherId, courseId) => {
     setSelectedTeacher(teacherId);
     setSelectedCourse(courseId);
     setAnswers(Array(questions.length).fill(0));
   };
 
-  // Enviar la encuesta (RF2.4 y RF2.5)
   const handleSubmit = (e) => {
     e.preventDefault();
     
@@ -65,17 +63,14 @@ function EstudiantePage() {
       alert('Seleccione un docente y curso para evaluar');
       return;
     }
-    
-    // Verificar que todas las preguntas tengan respuesta (RF2.4)
+
     if (answers.some(answer => answer === 0)) {
       alert('Responda todas las preguntas antes de enviar');
       return;
     }
     
-    // Agregar la respuesta al contexto
     addResponse(studentId, selectedTeacher, selectedCourse, answers);
     
-    // Actualizar la lista de cursos disponibles
     const updatedCourses = studentCourses.filter(
       course => !(course.teacherId === selectedTeacher && course.courseId === selectedCourse)
     );
@@ -86,11 +81,6 @@ function EstudiantePage() {
     setSelectedCourse('');
     setAnswers(Array(questions.length).fill(0));
     setSubmitted(true);
-    
-    // Mostrar mensaje de éxito
-    setTimeout(() => {
-      setSubmitted(false);
-    }, 3000);
   };
 
   return (

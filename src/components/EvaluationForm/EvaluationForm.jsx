@@ -1,9 +1,9 @@
-import React from 'react';
+import "./evaluationForm.css";
 
 function EvaluationForm({ questions, answers, onAnswerChange, onSubmit }) {
   return (
     <form onSubmit={onSubmit} className="evaluation-form">
-      <h3>Evaluación del Docente</h3>
+      <h3>Evaluación Docente</h3>
       
       {questions.map((question, index) => (
         <div key={index} className="question-item">
