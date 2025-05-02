@@ -1,9 +1,9 @@
-import React from 'react';
+import "./coursesList.css";
 
 function CoursesList({ courses, selectedTeacher, selectedCourse, onSelectTeacher }) {
   return (
     <div className="courses-container">
-      <h3>Tus Materias y Docentes</h3>
+      <h3>Materias y Docentes</h3>
       <div className="courses-list">
         {courses.map((course, index) => (
           <div key={index} className="course-item">

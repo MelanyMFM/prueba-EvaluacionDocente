@@ -2,9 +2,9 @@ import React, { useState, useContext, useEffect } from 'react';
 import { AppContext } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import LoginForm from "../../components/LoginForm/LoginForm";
-import CoursesList from '../../components/EstudiantePage/CoursesList';
+import CoursesList from '../../components/CoursesList/CoursesList';
 import EvaluationForm from '../../components/EstudiantePage/EvaluationForm';
-import MessageDisplay from '../../components/EstudiantePage/MessageDisplay';
+import MessageDisplay from "../../components/MessageDisplay";
 import './EstudiantePage.css';
 
 function EstudiantePage() {
@@ -95,7 +95,7 @@ function EstudiantePage() {
 
   return (
     <div className="estudiante-container">
-      <h1>Evaluación Docente - EDIFICANDO</h1>
+      <h1>Evaluación Docente</h1>
       
       {!authenticated ? (
         <LoginForm 
@@ -121,7 +121,7 @@ function EstudiantePage() {
             <>
               {submitted && (
                 <div className="success-message">
-                  ¡Evaluación enviada con éxito! Puedes continuar evaluando a otros docentes.
+                  ¡Evaluación enviada con éxito!
                 </div>
               )}
               
