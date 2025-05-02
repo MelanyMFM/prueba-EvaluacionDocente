@@ -1,4 +1,4 @@
-import ExcelUploader from '../../components/ExcelUploader/ExcelUploader';
+import ExcelUploader from "../../ExcelUploader/ExcelUploader";
 
 function ProgramacionTab() {
   return (
