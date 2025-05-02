@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { AppContext } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import LoginForm from '../../components/EstudiantePage/LoginForm';
+import LoginForm from "../../components/LoginForm/LoginForm";
 import CoursesList from '../../components/EstudiantePage/CoursesList';
 import EvaluationForm from '../../components/EstudiantePage/EvaluationForm';
 import MessageDisplay from '../../components/EstudiantePage/MessageDisplay';
@@ -39,7 +39,7 @@ function EstudiantePage() {
       const courses = getCoursesForStudent(studentId);
       setStudentCourses(courses);
     } else {
-      alert('Documento de estudiante no válido. Por favor, intente de nuevo.');
+      alert('Documento de estudiante no válido');
     }
   };
 
@@ -62,13 +62,13 @@ function EstudiantePage() {
     e.preventDefault();
     
     if (!selectedTeacher || !selectedCourse) {
-      alert('Por favor, seleccione un docente y curso para evaluar.');
+      alert('Seleccione un docente y curso para evaluar');
       return;
     }
     
     // Verificar que todas las preguntas tengan respuesta (RF2.4)
     if (answers.some(answer => answer === 0)) {
-      alert('Por favor, responda todas las preguntas antes de enviar.');
+      alert('Responda todas las preguntas antes de enviar');
       return;
     }
     

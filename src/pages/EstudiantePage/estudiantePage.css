@@ -1,54 +1,4 @@
 
-
-.estudiante-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.estudiante-container h1 {
-  text-align: center;
-  color: #2c3e50;
-  margin-bottom: 30px;
-}
-
-.auth-container {
-  background-color: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
-
-.auth-container h2 {
-  margin-bottom: 20px;
-  color: #2c3e50;
-}
-
-.auth-container input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 15px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  font-size: 16px;
-}
-
-.auth-container button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s;
-}
-
-.auth-container button:hover {
-  background-color: #0056b3;
-}
-
 .survey-container {
   background-color: #f8f9fa;
   padding: 20px;
@@ -262,8 +212,6 @@
     padding: .5rem 0;
   }
   
-  
-  /* Estilos para la sección de encuesta */
   
   .estudiantePage select {
  

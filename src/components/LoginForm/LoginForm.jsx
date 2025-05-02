@@ -1,4 +1,4 @@
-import React from 'react';
+import "./loginForm.css";
 
 function LoginForm({ studentId, setStudentId, onAuthenticate }) {
   return (
@@ -8,7 +8,7 @@ function LoginForm({ studentId, setStudentId, onAuthenticate }) {
         type="text"
         value={studentId}
         onChange={(e) => setStudentId(e.target.value)}
-        placeholder="Documento de identidad"
+        placeholder="Documento"
       />
       <button onClick={onAuthenticate}>Ingresar</button>
     </div>
