@@ -5,7 +5,7 @@ import LoginForm from "../../components/LoginForm/LoginForm";
 import CoursesList from '../../components/CoursesList/CoursesList';
 import EvaluationForm from '../../components/EvaluationForm/EvaluationForm';
 import MessageDisplay from "../../components/MessageDisplay";
-import './EstudiantePage.css';
+import './estudiantePage.css';
 
 function EstudiantePage() {
   const navigate = useNavigate();
