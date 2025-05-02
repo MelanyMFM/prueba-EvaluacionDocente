@@ -32,13 +32,13 @@ function DocentePage() {
       
       setTeacherCourses(courseNames);
     } else {
-      alert('ID de docente no válido. Por favor, intente de nuevo.');
+      alert('ID de docente no válido');
     }
   };
 
   return (
     <div className="docente-container">
-      <h1>Portal Docente - EDIFICANDO</h1>
+      <h1>Portal Docente</h1>
       
       {!authenticated ? (
         <div className="auth-container">

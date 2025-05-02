@@ -1,4 +1,4 @@
-import React from 'react';
+import "./encuestaTab.css";
 
 function EncuestaTab({ encuestaActiva, setEncuestaActiva }) {
   return (

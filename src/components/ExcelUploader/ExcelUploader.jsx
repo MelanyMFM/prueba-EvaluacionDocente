@@ -173,7 +173,7 @@ function ExcelUploader() {
     <div className="excel-uploader">
       <h2>Cargar Programación Académica</h2>
       <p>
-        Seleccione un archivo Excel con la programación académica.
+        Seleccione un archivo Excel con la programación académica
       </p>
       
       <div className="upload-container">
@@ -201,11 +201,7 @@ function ExcelUploader() {
             <p>Estudiantes: {result.details.studentsCount}</p>
             <p>Docentes: {result.details.teachersCount}</p>
             <p>Cursos: {result.details.coursesCount}</p>
-            <p>Relaciones: {result.details.relationsCount}</p>
           </div>
-          <p className="note">
-            <strong>Nota:</strong> Las encuestas ya respondidas se han mantenido intactas.
-          </p>
         </div>
       )}
     </div>

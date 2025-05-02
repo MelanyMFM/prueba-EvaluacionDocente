@@ -1,4 +1,3 @@
-import React from 'react';
 import ExcelUploader from '../../components/ExcelUploader/ExcelUploader';
 
 function ProgramacionTab() {

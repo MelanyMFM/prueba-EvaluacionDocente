@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './preguntasTab.css';
 
 function PreguntasTab({ questions, setQuestions, questionWeights, setQuestionWeights }) {
   const [newQuestion, setNewQuestion] = useState('');

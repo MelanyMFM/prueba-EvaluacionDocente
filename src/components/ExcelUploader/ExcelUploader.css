@@ -1,82 +1,71 @@
 .excel-uploader {
-  background-color: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
+  padding: 2rem;
+  max-width: 50rem;
+  margin: 0 auto;
 }
 
 .excel-uploader h2 {
-  color: #2c3e50;
-  margin-bottom: 15px;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 2rem;
 }
 
-.required-fields {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin: 15px 0;
-  padding-left: 20px;
+.excel-uploader p {
+  font-size: 1rem;
+  margin-bottom: 1.2rem;
 }
 
 .upload-container {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  margin: 20px 0;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .file-input {
-  padding: 10px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  background-color: white;
+  padding: 0.8rem;
+  font-size: 1rem;
+  border: 0.1rem solid #ccc;
+  border-radius: 0.5rem;
 }
 
 .upload-button {
+  padding: 0.9rem 1.6rem;
   background-color: #007bff;
   color: white;
   border: none;
-  padding: 10px 15px;
-  border-radius: 4px;
+  font-size: 1rem;
+  border-radius: 0.5rem;
   cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s;
-}
-
-.upload-button:hover {
-  background-color: #0056b3;
 }
 
 .upload-button:disabled {
-  background-color: #6c757d;
+  background-color: #99caff;
   cursor: not-allowed;
 }
 
 .error-message {
-  background-color: #f8d7da;
-  color: #721c24;
-  padding: 15px;
-  border-radius: 4px;
-  margin-top: 15px;
+  background-color: #ffe0e0;
+  border-left: 0.4rem solid #ff4d4f;
+  color: #b00020;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .success-message {
-  background-color: #d4edda;
+  background-color: #e6ffe6;
   color: #155724;
-  padding: 15px;
-  border-radius: 4px;
-  margin-top: 15px;
+  padding: 1rem;
+  border-radius: 0.5rem;
 }
 
-.result-details {
-  background-color: white;
-  padding: 15px;
-  border-radius: 4px;
-  margin: 10px 0;
+.success-message h3 {
+  margin-top: 0;
+  font-size: 1.2rem;
 }
 
-.note {
-  font-style: italic;
-  margin-top: 10px;
+.result-details p {
+  margin: 0.3rem 0;
+  font-size: 1rem;
 }

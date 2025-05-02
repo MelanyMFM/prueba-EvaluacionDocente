@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import "./resultadosTab.css";
 
 function ResultadosTab({ resultsPublished, publishResults, responses, results }) {
   const [selectedTeacher, setSelectedTeacher] = useState(null);

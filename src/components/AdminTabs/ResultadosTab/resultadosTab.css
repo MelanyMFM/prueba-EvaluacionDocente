@@ -1,0 +1,73 @@
+.resultados-tab {
+    padding: 1.1rem;
+  }
+  
+.resultados-tab h2 {
+    text-align: center;
+  }
+  
+.results-actions p {
+    font-size: 1rem;
+  }
+  
+.btn-success {
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    padding: .8rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+.teachers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+  }
+  
+.teacher-item {
+    padding: .85rem 1rem;
+    background-color: #f1f1f1;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 2px solid transparent;
+  }
+  
+.teacher-item:hover {
+    background-color: #e7e7e7;
+  }
+  
+.teacher-item.selected {
+    border: 2px solid #28a745;
+    background-color: #dff6e0;
+  }
+  
+.teacher-results-detail {
+    padding: 1.1rem;
+  }
+  
+.tabla-resultados table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .tabla-resultados th,
+  .tabla-resultados td {
+    padding: .8rem;
+    border: 1px solid #ccc;
+    text-align: center;
+  }
+  
+  .tabla-resultados th {
+    background-color: #555555;
+    color: white;
+  }
+  
+  .tabla-resultados td {
+    background-color: #fff;
+  }
+  

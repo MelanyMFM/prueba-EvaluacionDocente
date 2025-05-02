@@ -1,9 +1,9 @@
 import React, { useState, useContext } from 'react';
 import { AppContext } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import EncuestaTab from '../../components/AdminTabs/EncuestaTab';
-import PreguntasTab from '../../components/AdminTabs/PreguntasTab';
-import ResultadosTab from '../../components/AdminTabs/ResultadosTab';
+import EncuestaTab from '../../components/AdminTabs/EncuestaTab/EncuestaTab';
+import PreguntasTab from '../../components/AdminTabs/PreguntasTab/PreguntasTab';
+import ResultadosTab from '../../components/AdminTabs/ResultadosTab/ResultadosTab';
 import ProgramacionTab from '../../components/AdminTabs/ProgramacionTab';
 import './AdminPage.css';
 
