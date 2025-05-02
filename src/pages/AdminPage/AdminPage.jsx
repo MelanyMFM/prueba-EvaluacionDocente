@@ -5,7 +5,7 @@ import EncuestaTab from "../../components/AdminTabs/EncuestaTab/EncuestaTab";
 import PreguntasTab from '../../components/AdminTabs/PreguntasTab/PreguntasTab';
 import ResultadosTab from '../../components/AdminTabs/ResultadosTab/ResultadosTab';
 import ProgramacionTab from "../../components/AdminTabs/ProgramacionTab/ProgramacionTab";
-import './AdminPage.css';
+import './adminPage.css';
 
 function AdminPage() {
   const navigate = useNavigate();
