@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { AppContext } from '../../context/AppContext';
-import './DocentePage.css';
+import './docentePage.css';
 
 function DocentePage() {
   const { teachers, results, resultsPublished, studentCourses, courses } = useContext(AppContext);
