@@ -19,7 +19,7 @@ function ExcelUploader() {
 
   const handleUpload = async () => {
     if (!file) {
-      setError('Por favor, seleccione un archivo Excel.');
+      setError('Por favor, seleccione un archivo Excel');
       return;
     }
 
@@ -29,12 +29,9 @@ function ExcelUploader() {
 
     try {
       const data = await readExcelFile(file);
-      
-      // Verificar que el archivo tenga los campos requeridos
-      console.log('Datos del archivo:', data);
 
       if (!validateExcelData(data)) {
-        setError('El archivo Excel no tiene el formato correcto. Verifique que contenga todos los campos requeridos.');
+        setError('El archivo Excel no tiene el formato correcto');
         setLoading(false);
         return;
       }
@@ -56,75 +53,64 @@ function ExcelUploader() {
   const readExcelFile = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      
+  
       reader.onload = (e) => {
         try {
           const data = e.target.result;
           const workbook = XLSX.read(data, { type: 'array' });
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
-          
-          // Obtener los datos como JSON con encabezados originales
-          const rawData = XLSX.utils.sheet_to_json(worksheet);
-          
+          const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: '' }); // keep empty cells
+  
           if (rawData.length === 0) {
             reject(new Error('El archivo no contiene datos'));
             return;
           }
-          
-          console.log("Datos originales:", rawData[0]);
-          
-          // Procesar los datos para normalizar los nombres de las columnas
+  
+          const firstRow = rawData[0];
+          const firstKeys = Object.keys(firstRow);
+  
+          // mapeo manual
           const processedData = rawData.map(row => {
+            //console.log("First column value:", firstKeys[0], row[firstKeys[0]]);
             const newRow = {};
-            
-            // Mapear las claves originales a las claves normalizadas
+  
             Object.keys(row).forEach(key => {
-              // Manejar la columna vacía que contiene PERIODO
-              if (key === '') {
-                newRow['PERIODO'] = row[key];
-              }
-              // Manejar las columnas __EMPTY_X
-              else if (key.startsWith('__EMPTY')) {
-                const value = row[key];
-                
-                // Asignar valores basados en el contenido o posición
-                if (key === '__EMPTY') newRow['COD_SEDE'] = value;
-                else if (key === '__EMPTY_1') newRow['SEDE'] = value;
-                else if (key === '__EMPTY_2') newRow['DOCUMENTO'] = value;
-                else if (key === '__EMPTY_3') newRow['NOMBRE_ESTUDIANTE'] = value;
-                else if (key === '__EMPTY_4') newRow['EMAIL'] = value;
-                else if (key === '__EMPTY_5') newRow['ID_ASIGNATURA'] = value;
-                else if (key === '__EMPTY_6') newRow['ASIGNATURA'] = value;
-                else if (key === '__EMPTY_7') newRow['ID_GRUPO_ACTIVIDAD'] = value;
-                else if (key === '__EMPTY_8') newRow['DOC_DOCENTE_PPAL'] = value;
-                else if (key === '__EMPTY_9') newRow['NOMBRE_DOCENTE_PRINCIPAL'] = value;
-                else if (key === '__EMPTY_10') newRow['EMAIL_DOCENTE_PRINCIPAL'] = value;
-              }
-              else {
-                // Mantener otras claves tal como están
-                newRow[key] = row[key];
-              }
+              const value = row[key];
+  
+              if (key === firstKeys[0]) newRow['PERIODO'] = value;
+              else if (key === firstKeys[1]) newRow['COD_SEDE'] = value;
+              else if (key === firstKeys[2]) newRow['SEDE'] = value;
+              else if (key === firstKeys[3]) newRow['DOCUMENTO'] = value;
+              else if (key === firstKeys[4]) newRow['NOMBRE_ESTUDIANTE'] = value;
+              else if (key === firstKeys[5]) newRow['EMAIL'] = value;
+              else if (key === firstKeys[6]) newRow['ID_ASIGNATURA'] = value;
+              else if (key === firstKeys[7]) newRow['ASIGNATURA'] = value;
+              else if (key === firstKeys[8]) newRow['ID_GRUPO_ACTIVIDAD'] = value;
+              else if (key === firstKeys[9]) newRow['DOC_DOCENTE_PPAL'] = value;
+              else if (key === firstKeys[10]) newRow['NOMBRE_DOCENTE_PRINCIPAL'] = value;
+              else if (key === firstKeys[11]) newRow['EMAIL_DOCENTE_PRINCIPAL'] = value;
+              else newRow[key] = value;
             });
             
             return newRow;
           });
-          
-          console.log("Datos procesados:", processedData[0]);
           resolve(processedData);
+  
         } catch (error) {
           console.error("Error al procesar el archivo:", error);
           reject(error);
         }
       };
-      
+  
       reader.onerror = (error) => {
         reject(error);
       };
-      
+  
       reader.readAsArrayBuffer(file);
     });
   };
+  
 
   const validateExcelData = (data) => {
     if (!data || data.length === 0) {
@@ -140,7 +126,7 @@ function ExcelUploader() {
     ];
     
     // Obtener todas las claves del primer objeto
-    const firstRow = data[0];
+    const firstRow = data[1];
     console.log("Primera fila para validación:", firstRow);
     
     // Verificar si todos los campos requeridos están presentes

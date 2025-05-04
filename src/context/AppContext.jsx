@@ -279,6 +279,8 @@ export const AppProvider = ({ children }) => {
     const coursesMap = {};
     const relationsMap = {};
     
+    excelData.shift(); // Elimino la primera fila
+
     // Procesar datos del Excel
     excelData.forEach(row => {
       // Función auxiliar para obtener el valor de un campo con posibles variaciones de nombre
