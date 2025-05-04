@@ -1,13 +1,15 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { AppContext } from '../../context/AppContext';
+import ResultadosEncuesta from '../../components/ResultadosEncuesta';
 import './docentePage.css';
 
 function DocentePage() {
-  const { teachers, results, resultsPublished, studentCourses, courses } = useContext(AppContext);
+  const { teachers, results, resultsPublished, studentCourses, courses, responses } = useContext(AppContext);
   const [teacherId, setTeacherId] = useState('');
   const [authenticated, setAuthenticated] = useState(false);
   const [teacherInfo, setTeacherInfo] = useState(null);
   const [teacherCourses, setTeacherCourses] = useState([]);
+  const [courseResults, setCourseResults] = useState([]);
 
   // Verificar si el ID del docente es válido
   const handleAuthentication = () => {
@@ -31,9 +33,48 @@ function DocentePage() {
       });
       
       setTeacherCourses(courseNames);
+      
+      // Calcular resultados por asignatura
+      if (resultsPublished) {
+        const resultsByCourse = getTeacherCourseResults(teacherId);
+        setCourseResults(resultsByCourse);
+      }
     } else {
       alert('ID de docente no válido');
     }
+  };
+  
+  // Función para obtener resultados por asignatura para un docente
+  const getTeacherCourseResults = (teacherId) => {
+    // Agrupar respuestas por curso para este docente
+    const courseResponses = {};
+    
+    responses.forEach(response => {
+      if (response.teacherId === teacherId) {
+        if (!courseResponses[response.courseId]) {
+          courseResponses[response.courseId] = {
+            courseId: response.courseId,
+            participaciones: 0,
+            totalPuntaje: 0
+          };
+        }
+        
+        // Calcular puntaje promedio de esta respuesta
+        const respuestaPuntaje = response.answers.reduce((sum, val) => sum + val, 0) / response.answers.length;
+        courseResponses[response.courseId].participaciones += 1;
+        courseResponses[response.courseId].totalPuntaje += respuestaPuntaje;
+      }
+    });
+    
+    // Convertir a array y calcular promedios
+    return Object.values(courseResponses).map(course => {
+      const courseInfo = courses.find(c => c.id === course.courseId) || { nombre: 'Curso desconocido' };
+      return {
+        nombreAsignatura: courseInfo.nombre,
+        participaciones: course.participaciones,
+        nota: (course.totalPuntaje / course.participaciones).toFixed(2)
+      };
+    });
   };
 
   return (
@@ -68,20 +109,11 @@ function DocentePage() {
               {results[teacherInfo.id] ? (
                 <div className="results-card">
                   <h4>{teacherInfo.nombre}</h4>
-                  <table className="results-table">
-                    <thead>
-                      <tr>
-                        <th>Participaciones</th>
-                        <th>Nota</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>{results[teacherInfo.id].totalRespuestas}</td>
-                        <td>{results[teacherInfo.id].puntaje}</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                  <ResultadosEncuesta 
+                    teacherName={teacherInfo.nombre}
+                    courseResults={courseResults}
+                    showTeacherName={false}
+                  />
                 </div>
               ) : (
                 <p>No hay resultados disponibles para su evaluación.</p>

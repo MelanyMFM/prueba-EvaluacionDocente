@@ -382,7 +382,7 @@ export const AppProvider = ({ children }) => {
         addResponse,
         hasStudentEvaluatedTeacher,
         getCoursesForStudent,
-        updateAcademicSchedule // Agregar la nueva función al contexto
+        updateAcademicSchedule 
       }}
     >
       {children}

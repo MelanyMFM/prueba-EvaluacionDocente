@@ -1,8 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { AppContext } from '../../../context/AppContext';
+import ResultadosEncuesta from '../../ResultadosEncuesta';
 import "./resultadosTab.css";
 
 function ResultadosTab({ resultsPublished, publishResults, responses, results }) {
   const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const { courses } = useContext(AppContext);
+  
+  // Función para obtener resultados por asignatura para un docente
+  const getTeacherCourseResults = (teacherId) => {
+    if (!selectedTeacher) return [];
+    
+    // Agrupar respuestas por curso para este docente
+    const courseResponses = {};
+    
+    responses.forEach(response => {
+      if (response.teacherId === teacherId) {
+        if (!courseResponses[response.courseId]) {
+          courseResponses[response.courseId] = {
+            courseId: response.courseId,
+            participaciones: 0,
+            totalPuntaje: 0
+          };
+        }
+        
+        // Calcular puntaje promedio de esta respuesta
+        const respuestaPuntaje = response.answers.reduce((sum, val) => sum + val, 0) / response.answers.length;
+        courseResponses[response.courseId].participaciones += 1;
+        courseResponses[response.courseId].totalPuntaje += respuestaPuntaje;
+      }
+    });
+    
+    // Convertir a array y calcular promedios
+    return Object.values(courseResponses).map(course => {
+      const courseInfo = courses.find(c => c.id === course.courseId) || { nombre: 'Curso desconocido' };
+      return {
+        nombreAsignatura: courseInfo.nombre,
+        participaciones: course.participaciones,
+        nota: (course.totalPuntaje / course.participaciones).toFixed(2)
+      };
+    });
+  };
 
   return (
     <div className="resultados-tab">
@@ -37,22 +75,11 @@ function ResultadosTab({ resultsPublished, publishResults, responses, results })
             {selectedTeacher && (
               <div className="teacher-results-detail">
                 <h4>Resultados de {results[selectedTeacher].nombre}</h4>
-                <div className="tabla-resultados">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Participaciones</th>
-                        <th>Nota</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>{results[selectedTeacher].totalRespuestas}</td>
-                        <td>{results[selectedTeacher].puntaje}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+                <ResultadosEncuesta 
+                  teacherName={results[selectedTeacher].nombre}
+                  courseResults={getTeacherCourseResults(selectedTeacher)}
+                  showTeacherName={false}
+                />
               </div>
             )}
           </div>
