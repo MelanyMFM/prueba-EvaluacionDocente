@@ -1,7 +1,34 @@
 function ResultadosEncuesta({ teacherName, courseResults, showTeacherName = true }) {
+  // Agrupar resultados por asignatura (ignorando mayúsculas/minúsculas)
+  const agrupados = {};
+  
+  courseResults.forEach(course => {
+    // Normalizar el nombre de la asignatura (convertir a minúsculas)
+    const nombreNormalizado = course.nombreAsignatura.toLowerCase();
+    
+    if (!agrupados[nombreNormalizado]) {
+      agrupados[nombreNormalizado] = {
+        nombreAsignatura: course.nombreAsignatura, // Mantener el primer nombre que encontremos
+        participaciones: 0,
+        totalPuntos: 0
+      };
+    }
+    
+    // Sumar participaciones y puntos
+    agrupados[nombreNormalizado].participaciones += course.participaciones;
+    agrupados[nombreNormalizado].totalPuntos += parseFloat(course.nota) * course.participaciones;
+  });
+  
+  // Convertir el objeto agrupado a un array y calcular las notas finales
+  const resultadosAgrupados = Object.values(agrupados).map(grupo => ({
+    nombreAsignatura: grupo.nombreAsignatura,
+    participaciones: grupo.participaciones,
+    nota: (grupo.totalPuntos / grupo.participaciones).toFixed(2)
+  }));
+  
   // Calcular el total de participaciones y el promedio general
-  const totalParticipaciones = courseResults.reduce((sum, course) => sum + course.participaciones, 0);
-  const promedioGeneral = courseResults.reduce((sum, course) => sum + (parseFloat(course.nota) * course.participaciones), 0) / totalParticipaciones;
+  const totalParticipaciones = resultadosAgrupados.reduce((sum, course) => sum + course.participaciones, 0);
+  const promedioGeneral = resultadosAgrupados.reduce((sum, course) => sum + (parseFloat(course.nota) * course.participaciones), 0) / totalParticipaciones;
   
   return (
     <div className="resultados-container">
@@ -17,7 +44,7 @@ function ResultadosEncuesta({ teacherName, courseResults, showTeacherName = true
             </tr>
           </thead>
           <tbody>
-            {courseResults.map((course, index) => (
+            {resultadosAgrupados.map((course, index) => (
               <tr key={index}>
                 <td>{course.nombreAsignatura}</td>
                 <td>{course.participaciones}</td>
