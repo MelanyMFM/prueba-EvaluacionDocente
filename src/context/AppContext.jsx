@@ -600,3 +600,9 @@ export const AppProvider = ({ children }) => {
     </AppContext.Provider>
   );
 };
+
+// Este archivo ahora solo exporta los componentes principales
+// para mantener la compatibilidad con el código existente
+
+export { AppContext } from './AppContext';
+export { AppProvider } from './AppProvider';
