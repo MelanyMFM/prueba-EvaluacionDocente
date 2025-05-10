@@ -1,26 +1,31 @@
-import "./coursesList.css";
+import React from 'react';
+import './coursesList.css';
 
-function CoursesList({ courses, selectedTeacher, selectedCourse, onSelectTeacher }) {
+function CoursesList({ courses, onSelectTeacher }) {
   return (
-    <div className="courses-container">
-      <h3>Materias y Docentes</h3>
-      <div className="courses-list">
-        {courses.map((course, index) => (
-          <div key={index} className="course-item">
-            <div className="course-info">
-              <h4>{course.courseName}</h4>
-              <p>Docente: {course.teacherName}</p>
-              <p>Grupo: {course.group}</p>
-            </div>
-            <button 
-              onClick={() => onSelectTeacher(course.teacherId, course.courseId)}
-              className={selectedTeacher === course.teacherId && selectedCourse === course.courseId ? 'selected' : ''}
-            >
-              Evaluar
-            </button>
+    <div className="courses-list">
+      {courses.length === 0 ? (
+        <p className="no-courses">No hay cursos disponibles para este periodo.</p>
+      ) : (
+        courses.map((course, index) => (
+          <div 
+            key={index} 
+            className={`course-item ${course.isEvaluated ? 'evaluated' : ''}`}
+            onClick={() => !course.isEvaluated && onSelectTeacher(course.teacherId, course.courseId)}
+          >
+            <h3>{course.courseName}</h3>
+            <p><strong>Docente:</strong> {course.teacherName}</p>
+            <p><strong>Grupo:</strong> {course.group}</p>
+            {course.isEvaluated ? (
+              <div className="evaluation-status">
+                <span className="status-badge">Evaluado</span>
+              </div>
+            ) : (
+              <button className="evaluate-button">Evaluar</button>
+            )}
           </div>
-        ))}
-      </div>
+        ))
+      )}
     </div>
   );
 }

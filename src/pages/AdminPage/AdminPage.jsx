@@ -5,13 +5,14 @@ import EncuestaTab from "../../components/AdminTabs/EncuestaTab/EncuestaTab";
 import PreguntasTab from '../../components/AdminTabs/PreguntasTab/PreguntasTab';
 import ResultadosTab from '../../components/AdminTabs/ResultadosTab/ResultadosTab';
 import ProgramacionTab from "../../components/AdminTabs/ProgramacionTab/ProgramacionTab";
+import PeriodSelector from "../../components/PeriodSelector";
 import './adminPage.css';
 
 function AdminPage() {
   const navigate = useNavigate();
   const {
     encuestaActiva,
-    setEncuestaActiva,
+    toggleEncuestaActivaForPeriod,
     questions,
     setQuestions,
     questionWeights,
@@ -19,14 +20,50 @@ function AdminPage() {
     resultsPublished,
     publishResults,
     responses,
-    results
+    results,
+    periods,
+    currentPeriod,
+    setCurrentPeriod,
+    isEncuestaActivaForPeriod,
+    areResultsPublishedForPeriod,
+    studentCourses
   } = useContext(AppContext);
 
   const [activeTab, setActiveTab] = useState('encuesta');
+  const [selectedPeriod, setSelectedPeriod] = useState(currentPeriod);
+
+  // Manejar cambio de periodo
+  const handlePeriodChange = (periodId) => {
+    setSelectedPeriod(periodId);
+    setCurrentPeriod(periodId);
+  };
+
+  // Verificar si la encuesta está activa para el periodo seleccionado
+  const isEncuestaActiva = selectedPeriod ? isEncuestaActivaForPeriod(selectedPeriod) : false;
+
+  // Función para activar/desactivar la encuesta para el periodo seleccionado
+  const handleToggleEncuesta = () => {
+    toggleEncuestaActivaForPeriod(selectedPeriod, !isEncuestaActiva);
+  };
+
+  // Verificar si los resultados están publicados para el periodo seleccionado
+  const isResultsPublished = selectedPeriod ? areResultsPublishedForPeriod(selectedPeriod) : false;
+
+  // Función para publicar resultados para el periodo seleccionado
+  const handlePublishResults = () => {
+    publishResults(selectedPeriod);
+  };
 
   return (
     <div className="admin-container">
       <h1>Panel de Administración</h1>
+      
+      <PeriodSelector 
+        periods={periods}
+        selectedPeriod={selectedPeriod}
+        onSelectPeriod={handlePeriodChange}
+        label="Seleccione el periodo académico:"
+      />
       
       <div className="admin-tabs">
         <button
@@ -58,8 +95,8 @@ function AdminPage() {
       <div className="admin-content">
         {activeTab === 'encuesta' && (
           <EncuestaTab 
-            encuestaActiva={encuestaActiva} 
-            setEncuestaActiva={setEncuestaActiva} 
+            encuestaActiva={isEncuestaActiva} 
+            setEncuestaActiva={handleToggleEncuesta} 
           />
         )}
         
@@ -74,15 +111,23 @@ function AdminPage() {
         
         {activeTab === 'resultados' && (
           <ResultadosTab 
-            resultsPublished={resultsPublished}
-            publishResults={publishResults}
-            responses={responses}
-            results={results}
+            resultsPublished={isResultsPublished}
+            publishResults={handlePublishResults}
+            responses={responses.filter(r => {
+              // Filtrar respuestas por periodo
+              const enrollment = studentCourses.find(
+                sc => sc.studentId === r.studentId && 
+                      sc.teacherId === r.teacherId && 
+                      sc.courseId === r.courseId
+              );
+              return enrollment && enrollment.period === selectedPeriod;
+            })}
+            results={results[selectedPeriod] || {}}
           />
         )}
         
         {activeTab === 'programacion' && (
-          <ProgramacionTab />
+          <ProgramacionTab selectedPeriod={selectedPeriod} />
         )}
       </div>
       

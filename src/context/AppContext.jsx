@@ -31,21 +31,28 @@ const initialCourses = [
   { id: "2016082", nombre: "Problemas contemporáneos de las artes", grupo: "CARI-01" }
 ];
 
-// Relación entre estudiantes, cursos y docentes
+// Periodos académicos iniciales
+const initialPeriods = [
+  { id: "2023-1", nombre: "2023-1" },
+  { id: "2023-2", nombre: "2023-2" },
+  { id: "2024-1", nombre: "2024-1" }
+];
+
+// Relación entre estudiantes, cursos y docentes (ahora con periodo)
 const initialStudentCourses = [
-  { studentId: "1016592846", courseId: "1000009-M", teacherId: "51709551", group: "CARI-01" },
-  { studentId: "1016592846", courseId: "1000001-M", teacherId: "40987816", group: "CARI-02" },
-  { studentId: "1016592846", courseId: "1000002-M", teacherId: "52189598", group: "CARI-04" },
-  { studentId: "1016592846", courseId: "8000150", teacherId: "73569871", group: "1" },
-  { studentId: "1006868597", courseId: "4100539", teacherId: "52424848", group: "CARI-01" },
-  { studentId: "1006868597", courseId: "1000001-Z", teacherId: "40987816", group: "CARI-02" },
-  { studentId: "1006868597", courseId: "1000002-Z", teacherId: "52189598", group: "CARI-04" },
-  { studentId: "1006868597", courseId: "8000150", teacherId: "73569871", group: "1" },
-  { studentId: "1006868597", courseId: "1000089-C", teacherId: "79244154", group: "CARI-02" },
-  { studentId: "1123623327", courseId: "2016082", teacherId: "52023234", group: "CARI-01" },
-  { studentId: "1123623327", courseId: "1000001-Z", teacherId: "40987816", group: "CARI-02" },
-  { studentId: "1123623327", courseId: "1000002-Z", teacherId: "52189598", group: "CARI-02" },
-  { studentId: "1123623327", courseId: "8000150", teacherId: "73569871", group: "1" }
+  { studentId: "1016592846", courseId: "1000009-M", teacherId: "51709551", group: "CARI-01", period: "2023-2" },
+  { studentId: "1016592846", courseId: "1000001-M", teacherId: "40987816", group: "CARI-02", period: "2023-2" },
+  { studentId: "1016592846", courseId: "1000002-M", teacherId: "52189598", group: "CARI-04", period: "2023-2" },
+  { studentId: "1016592846", courseId: "8000150", teacherId: "73569871", group: "1", period: "2024-1" },
+  { studentId: "1006868597", courseId: "4100539", teacherId: "52424848", group: "CARI-01", period: "2023-2" },
+  { studentId: "1006868597", courseId: "1000001-Z", teacherId: "40987816", group: "CARI-02", period: "2023-2" },
+  { studentId: "1006868597", courseId: "1000002-Z", teacherId: "52189598", group: "CARI-04", period: "2023-2" },
+  { studentId: "1006868597", courseId: "8000150", teacherId: "73569871", group: "1", period: "2024-1" },
+  { studentId: "1006868597", courseId: "1000089-C", teacherId: "79244154", group: "CARI-02", period: "2024-1" },
+  { studentId: "1123623327", courseId: "2016082", teacherId: "52023234", group: "CARI-01", period: "2023-2" },
+  { studentId: "1123623327", courseId: "1000001-Z", teacherId: "40987816", group: "CARI-02", period: "2023-2" },
+  { studentId: "1123623327", courseId: "1000002-Z", teacherId: "52189598", group: "CARI-02", period: "2023-2" },
+  { studentId: "1123623327", courseId: "8000150", teacherId: "73569871", group: "1", period: "2024-1" }
 ];
 
 // Preguntas iniciales
@@ -65,7 +72,7 @@ export const AppProvider = ({ children }) => {
   // Cargar datos del localStorage o usar los iniciales
   const [encuestaActiva, setEncuestaActiva] = useState(() => {
     const saved = localStorage.getItem('encuestaActiva');
-    return saved !== null ? JSON.parse(saved) : false;
+    return saved !== null ? JSON.parse(saved) : {};
   });
   
   const [questions, setQuestions] = useState(() => {
@@ -110,7 +117,17 @@ export const AppProvider = ({ children }) => {
   
   const [resultsPublished, setResultsPublished] = useState(() => {
     const saved = localStorage.getItem('resultsPublished');
-    return saved !== null ? JSON.parse(saved) : false;
+    return saved !== null ? JSON.parse(saved) : {};
+  });
+  
+  const [periods, setPeriods] = useState(() => {
+    const saved = localStorage.getItem('periods');
+    return saved !== null ? JSON.parse(saved) : initialPeriods;
+  });
+  
+  const [currentPeriod, setCurrentPeriod] = useState(() => {
+    const saved = localStorage.getItem('currentPeriod');
+    return saved !== null ? JSON.parse(saved) : periods[0]?.id || null;
   });
 
   // Guardar cambios en localStorage cuando cambian los estados
@@ -153,9 +170,50 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('resultsPublished', JSON.stringify(resultsPublished));
   }, [resultsPublished]);
+  
+  useEffect(() => {
+    localStorage.setItem('periods', JSON.stringify(periods));
+  }, [periods]);
+  
+  useEffect(() => {
+    localStorage.setItem('currentPeriod', JSON.stringify(currentPeriod));
+  }, [currentPeriod]);
 
-  // Función para calcular resultados
-  const calculateResults = () => {
+  // Función para verificar si la encuesta está activa para un periodo específico
+  const isEncuestaActivaForPeriod = (periodId) => {
+    return encuestaActiva[periodId] === true;
+  };
+  
+  // Función para activar/desactivar la encuesta para un periodo específico
+  const toggleEncuestaActivaForPeriod = (periodId, isActive) => {
+    setEncuestaActiva(prev => ({
+      ...prev,
+      [periodId]: isActive
+    }));
+  };
+  
+  // Función para verificar si los resultados están publicados para un periodo específico
+  const areResultsPublishedForPeriod = (periodId) => {
+    return resultsPublished[periodId] === true;
+  };
+  
+  // Función para publicar resultados para un periodo específico
+  const publishResults = (periodId) => {
+    const calculatedResults = calculateResultsForPeriod(periodId);
+    
+    setResults(prev => ({
+      ...prev,
+      [periodId]: calculatedResults
+    }));
+    
+    setResultsPublished(prev => ({
+      ...prev,
+      [periodId]: true
+    }));
+  };
+
+  // Función para calcular resultados para un periodo específico
+  const calculateResultsForPeriod = (periodId) => {
     const newResults = {};
     
     // Inicializar resultados para cada docente
@@ -163,13 +221,27 @@ export const AppProvider = ({ children }) => {
       newResults[teacher.id] = {
         nombre: teacher.nombre,
         puntaje: 0,
-        totalRespuestas: 0
+        totalRespuestas: 0,
+        cursos: {}
       };
     });
     
-    // Calcular puntajes basados en las respuestas
-    responses.forEach(response => {
-      const { teacherId, answers } = response;
+    // Filtrar respuestas por periodo
+    const periodResponses = responses.filter(response => {
+      // Buscar la inscripción correspondiente para obtener el periodo
+      const enrollment = studentCourses.find(
+        sc => sc.studentId === response.studentId && 
+              sc.teacherId === response.teacherId && 
+              sc.courseId === response.courseId
+      );
+      
+      return enrollment && enrollment.period === periodId;
+    });
+    
+    // Calcular puntajes basados en las respuestas del periodo
+    periodResponses.forEach(response => {
+      const { teacherId, courseId, answers } = response;
+      
       if (newResults[teacherId]) {
         let totalScore = 0;
         
@@ -178,59 +250,85 @@ export const AppProvider = ({ children }) => {
           totalScore += (answer * questionWeights[index]) / 10;
         });
         
-        // Actualizar resultados del docente
-        newResults[teacherId].puntaje += totalScore / answers.length;
+        const scorePerQuestion = totalScore / answers.length;
+        
+        // Inicializar datos del curso si no existen
+        if (!newResults[teacherId].cursos[courseId]) {
+          const course = courses.find(c => c.id === courseId);
+          newResults[teacherId].cursos[courseId] = {
+            nombreAsignatura: course ? course.nombre : 'Curso desconocido',
+            participaciones: 0,
+            nota: 0
+          };
+        }
+        
+        // Actualizar resultados del docente por curso
+        newResults[teacherId].cursos[courseId].participaciones += 1;
+        newResults[teacherId].cursos[courseId].nota += scorePerQuestion;
+        
+        // Actualizar resultados generales del docente
+        newResults[teacherId].puntaje += scorePerQuestion;
         newResults[teacherId].totalRespuestas += 1;
       }
     });
     
-    // Calcular promedio final
+    // Calcular promedios finales
     Object.keys(newResults).forEach(teacherId => {
+      // Calcular promedio general del docente
       if (newResults[teacherId].totalRespuestas > 0) {
         newResults[teacherId].puntaje = (
           newResults[teacherId].puntaje / newResults[teacherId].totalRespuestas
         ).toFixed(2);
       }
+      
+      // Calcular promedio por curso
+      Object.keys(newResults[teacherId].cursos).forEach(courseId => {
+        const curso = newResults[teacherId].cursos[courseId];
+        if (curso.participaciones > 0) {
+          curso.nota = (curso.nota / curso.participaciones).toFixed(2);
+        }
+      });
+      
+      // Convertir el objeto de cursos a un array para facilitar su uso
+      newResults[teacherId].cursosArray = Object.values(newResults[teacherId].cursos);
     });
     
-    setResults(newResults);
     return newResults;
   };
 
-  // Función para publicar resultados
-  const publishResults = () => {
-    const calculatedResults = calculateResults();
-    setResults(calculatedResults);
-    setResultsPublished(true);
+  // Función para agregar una respuesta (ahora con periodo)
+  const addResponse = (response) => {
+    // Verificar si ya existe una respuesta para este estudiante, curso y docente en este periodo
+    const existingResponseIndex = responses.findIndex(
+      r => r.studentId === response.studentId && 
+           r.teacherId === response.teacherId && 
+           r.courseId === response.courseId &&
+           r.periodId === response.periodId
+    );
+    
+    if (existingResponseIndex >= 0) {
+      // Si ya existe, actualizar la respuesta existente
+      const updatedResponses = [...responses];
+      updatedResponses[existingResponseIndex] = response;
+      setResponses(updatedResponses);
+      
+      // Guardar en localStorage
+      localStorage.setItem('responses', JSON.stringify(updatedResponses));
+      console.log('Respuesta actualizada:', response);
+    } else {
+      // Si no existe, agregar nueva respuesta
+      const newResponses = [...responses, response];
+      setResponses(newResponses);
+      
+      // Guardar en localStorage
+      localStorage.setItem('responses', JSON.stringify(newResponses));
+      console.log('Nueva respuesta agregada:', response);
+    }
+    
+    return true; // Indicar que la operación fue exitosa
   };
 
-  // Función para agregar una respuesta
-  const addResponse = (studentId, teacherId, courseId, answers) => {
-    const newResponse = {
-      id: Date.now(),
-      studentId,
-      teacherId,
-      courseId,
-      answers,
-      date: new Date().toISOString()
-    };
-    
-    // Crear una nueva copia del array de respuestas
-    const updatedResponses = [...responses, newResponse];
-    
-    // Actualizar el estado con la nueva copia
-    setResponses(updatedResponses);
-    
-    // Forzar la actualización en localStorage
-    localStorage.setItem('responses', JSON.stringify(updatedResponses));
-    
-    return {
-      success: true,
-      message: 'Respuesta registrada correctamente'
-    };
-  };
-
-  // Función para verificar si un estudiante ya evaluó a un docente en un curso específico (RF2.5)
+  // Función para verificar si un estudiante ya evaluó a un docente en un curso específico
   const hasStudentEvaluatedTeacher = (studentId, teacherId, courseId) => {
     return responses.some(
       response => 
@@ -240,11 +338,11 @@ export const AppProvider = ({ children }) => {
     );
   };
 
-  // Función para obtener los cursos de un estudiante que aún no ha evaluado (RF2.2)
-  const getCoursesForStudent = (studentId) => {
-    // Filtrar los cursos del estudiante
+  // Función para obtener los cursos de un estudiante para un periodo específico que aún no ha evaluado
+  const getCoursesForStudentByPeriod = (studentId, periodId) => {
+    // Filtrar los cursos del estudiante para el periodo específico
     const studentEnrollments = studentCourses.filter(
-      enrollment => enrollment.studentId === studentId
+      enrollment => enrollment.studentId === studentId && enrollment.period === periodId
     );
     
     // Filtrar solo los cursos que el estudiante no ha evaluado aún
@@ -266,103 +364,199 @@ export const AppProvider = ({ children }) => {
         teacherId: enrollment.teacherId,
         courseName: course ? course.nombre : 'Curso desconocido',
         teacherName: teacher ? teacher.nombre : 'Docente desconocido',
-        group: enrollment.group
+        group: enrollment.group,
+        period: enrollment.period
       };
     });
   };
 
+  // Función para obtener los periodos disponibles para un estudiante
+  const getPeriodsForStudent = (studentId) => {
+    // Obtener todos los periodos únicos en los que el estudiante tiene cursos
+    const studentPeriods = [...new Set(
+      studentCourses
+        .filter(enrollment => enrollment.studentId === studentId)
+        .map(enrollment => enrollment.period)
+    )];
+    
+    // Mapear a objetos de periodo completos
+    return periods.filter(period => studentPeriods.includes(period.id));
+  };
+
+  // Función para obtener los periodos disponibles para un docente
+  const getPeriodsForTeacher = (teacherId) => {
+    // Obtener todos los periodos únicos en los que el docente tiene cursos
+    const teacherPeriods = [...new Set(
+      studentCourses
+        .filter(enrollment => enrollment.teacherId === teacherId)
+        .map(enrollment => enrollment.period)
+    )];
+    
+    // Mapear a objetos de periodo completos
+    return periods.filter(period => teacherPeriods.includes(period.id));
+  };
+
+  // Función para obtener los resultados de un docente para un periodo específico
+  const getTeacherResultsForPeriod = (teacherId, periodId) => {
+    if (!results[periodId] || !results[periodId][teacherId]) {
+      return {
+        nombre: teachers.find(t => t.id === teacherId)?.nombre || 'Docente desconocido',
+        puntaje: 0,
+        totalRespuestas: 0,
+        cursosArray: []
+      };
+    }
+    
+    return results[periodId][teacherId];
+  };
+
   // Función para actualizar la programación académica desde un archivo Excel
   const updateAcademicSchedule = (excelData) => {
-    // Mapas para evitar duplicados
-    const studentsMap = {};
-    const teachersMap = {};
-    const coursesMap = {};
-    const relationsMap = {};
+    console.log("Actualizando programación académica con datos:", excelData.length);
     
-    excelData.shift(); // Elimino la primera fila
-
-    // Procesar datos del Excel
+    // Crear nuevas colecciones para almacenar los datos actualizados
+    const newStudents = [];
+    const newTeachers = [];
+    const newCourses = [];
+    const newStudentCourses = [];
+    
+    // Mapas para evitar duplicados
+    const studentMap = new Map();
+    const teacherMap = new Map();
+    const courseMap = new Map();
+    
+    // Procesar cada fila del Excel
     excelData.forEach(row => {
-      // Función auxiliar para obtener el valor de un campo con posibles variaciones de nombre
-      const getValue = (fieldOptions) => {
-        for (const option of fieldOptions) {
-          if (row[option] !== undefined) return row[option];
-        }
-        return null;
-      };
-  
-      // Extraer información del estudiante
-      const studentId = getValue(['DOCUMENTO', 'documento']).toString();
-      if (studentId) {
-        studentsMap[studentId] = {
+      // Extraer periodo
+      const period = String(row.PERIODO).trim();
+      
+      // Procesar estudiante
+      const studentId = String(row.DOCUMENTO).trim();
+      if (studentId && !studentMap.has(studentId)) {
+        const studentName = String(row.NOMBRE_ESTUDIANTE).trim();
+        const studentEmail = String(row.EMAIL).trim();
+        
+        newStudents.push({
           id: studentId,
-          nombre: getValue(['NOMBRE_ESTUDIANTE', 'nombre_estudiante']),
-          email: getValue(['EMAIL', 'email'])
-        };
+          nombre: studentName,
+          email: studentEmail
+        });
+        
+        studentMap.set(studentId, true);
       }
       
-      // Extraer información del docente
-      const teacherId = getValue(['DOC_DOCENTE_PPAL', 'doc_docente_ppal']).toString();
-      if (teacherId) {
-        teachersMap[teacherId] = {
+      // Procesar docente
+      const teacherId = String(row.DOC_DOCENTE_PPAL).trim();
+      if (teacherId && !teacherMap.has(teacherId)) {
+        const teacherName = String(row.NOMBRE_DOCENTE_PRINCIPAL).trim();
+        const teacherEmail = String(row.EMAIL_DOCENTE_PRINCIPAL || '').trim();
+        
+        newTeachers.push({
           id: teacherId,
-          nombre: getValue(['NOMBRE_DOCENTE_PRINCIPAL', 'nombre_docente_principal']),
-          email: getValue(['EMAIL_DOCENTE_PRINCIPAL', 'email_docente_principal'])
-        };
+          nombre: teacherName,
+          email: teacherEmail
+        });
+        
+        teacherMap.set(teacherId, true);
       }
       
-      // Extraer información del curso
-      const courseId = getValue(['ID_ASIGNATURA', 'ID_ASSIGNATURA', 'id_asignatura', 'id_assignatura']).toString();
-      const groupId = getValue(['ID_GRUPO_ACTIVIDAD', 'id_grupo_actividad']);
-      if (courseId) {
-        coursesMap[courseId] = {
+      // Procesar curso
+      const courseId = String(row.ID_ASIGNATURA).trim();
+      if (courseId && !courseMap.has(courseId)) {
+        const courseName = String(row.ASIGNATURA).trim();
+        
+        newCourses.push({
           id: courseId,
-          nombre: getValue(['ASIGNATURA', 'asignatura']),
-          grupo: groupId ? groupId.toString() : 'DEFAULT'
-        };
+          nombre: courseName
+        });
+        
+        courseMap.set(courseId, true);
       }
       
-      // Crear relación estudiante-curso-docente
-      if (studentId && courseId && teacherId) {
-        const relationKey = `${studentId}-${courseId}-${teacherId}`;
-        relationsMap[relationKey] = {
+      // Procesar inscripción de estudiante a curso
+      if (studentId && courseId && teacherId && period) {
+        const group = String(row.ID_GRUPO_ACTIVIDAD || '').trim();
+        
+        newStudentCourses.push({
           studentId,
           courseId,
           teacherId,
-          group: groupId ? groupId.toString() : 'DEFAULT'
-        };
+          period,
+          group
+        });
       }
     });
     
-    // Convertir mapas a arrays
-    const newStudents = Object.values(studentsMap);
-    const newTeachers = Object.values(teachersMap);
-    const newCourses = Object.values(coursesMap);
-    const newRelations = Object.values(relationsMap);
-    
-    // Actualizar el estado
+    // Actualizar el estado con los nuevos datos
     setStudents(newStudents);
     setTeachers(newTeachers);
     setCourses(newCourses);
-    setStudentCourses(newRelations);
+    setStudentCourses(newStudentCourses);
     
-    // Forzar la actualización en localStorage
+    // Guardar en localStorage
     localStorage.setItem('students', JSON.stringify(newStudents));
     localStorage.setItem('teachers', JSON.stringify(newTeachers));
     localStorage.setItem('courses', JSON.stringify(newCourses));
-    localStorage.setItem('studentCourses', JSON.stringify(newRelations));
+    localStorage.setItem('studentCourses', JSON.stringify(newStudentCourses));
     
+    // Actualizar periodos si es necesario
+    const uniquePeriods = [...new Set(newStudentCourses.map(sc => sc.period))];
+    const updatedPeriods = uniquePeriods.map(periodId => {
+      // Buscar si ya existe este periodo
+      const existingPeriod = periods.find(p => p.id === periodId);
+      if (existingPeriod) {
+        return existingPeriod;
+      }
+      
+      // Si no existe, crear uno nuevo
+      return {
+        id: periodId,
+        nombre: `Periodo ${periodId}`
+      };
+    });
+    
+    // Actualizar periodos en el estado y localStorage
+    setPeriods(updatedPeriods);
+    localStorage.setItem('periods', JSON.stringify(updatedPeriods));
+    
+    // Si no hay periodo actual seleccionado, seleccionar el primero
+    if (!currentPeriod && updatedPeriods.length > 0) {
+      setCurrentPeriod(updatedPeriods[0].id);
+    }
+    
+    console.log("Programación académica actualizada con éxito");
+    
+    // Retornar estadísticas para mostrar en la UI
     return {
       studentsCount: newStudents.length,
       teachersCount: newTeachers.length,
       coursesCount: newCourses.length,
-      relationsCount: newRelations.length
+      studentCoursesCount: newStudentCourses.length
+    };
+  };
+
+  // Función para agregar un nuevo periodo
+  const addPeriod = (periodId, periodName) => {
+    if (periods.some(p => p.id === periodId)) {
+      return {
+        success: false,
+        message: 'El periodo ya existe'
+      };
+    }
+    
+    const newPeriod = { id: periodId, nombre: periodName };
+    setPeriods(prev => [...prev, newPeriod]);
+    
+    return {
+      success: true,
+      message: 'Periodo agregado correctamente'
     };
   };
 
   return (
     <AppContext.Provider
       value={{
+        // Estados
         encuestaActiva,
         setEncuestaActiva,
         questions,
@@ -379,12 +573,27 @@ export const AppProvider = ({ children }) => {
         teachers,
         courses,
         studentCourses,
-        calculateResults,
-        publishResults,
+        periods,
+        setPeriods,
+        currentPeriod,
+        setCurrentPeriod,
+        
+        // Funciones originales modificadas
         addResponse,
         hasStudentEvaluatedTeacher,
-        getCoursesForStudent,
-        updateAcademicSchedule 
+        
+        // Nuevas funciones para periodos
+        isEncuestaActivaForPeriod,
+        toggleEncuestaActivaForPeriod,
+        areResultsPublishedForPeriod,
+        publishResults,
+        calculateResultsForPeriod,
+        getCoursesForStudentByPeriod,
+        getPeriodsForStudent,
+        getPeriodsForTeacher,
+        getTeacherResultsForPeriod,
+        updateAcademicSchedule,
+        addPeriod
       }}
     >
       {children}
