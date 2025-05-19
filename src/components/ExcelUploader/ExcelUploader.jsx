@@ -28,13 +28,14 @@ function ExcelUploader() {
     setResult(null);
 
     try {
-      const data = await readExcelFile(file);
-
+      let  data = await readExcelFile(file);
       if (!validateExcelData(data)) {
         setError('El archivo Excel no tiene el formato correcto');
         setLoading(false);
         return;
       }
+      // Eliminar la primera fila
+        data.shift();
       
       // Actualizar la programación académica
       const updateResult = updateAcademicSchedule(data);
@@ -127,7 +128,7 @@ function ExcelUploader() {
     
     // Obtener todas las claves del primer objeto
     const firstRow = data[1];
-    console.log("Primera fila para validación:", firstRow);
+   // console.log("Primera fila para validación:", firstRow);
     
     // Verificar si todos los campos requeridos están presentes
     let missingFields = [];
