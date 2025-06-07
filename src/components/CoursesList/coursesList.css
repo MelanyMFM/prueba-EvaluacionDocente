@@ -6,13 +6,10 @@
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
+    justify-content: center;
    
 }
 
-.courses-list > .course-item {
-    flex: 0 0 48%; /* Ocupa el 50% del ancho para que solo quepan 2 por fila */
-    box-sizing: border-box; /* Para que padding o border no afecten el cálculo */
-}
 
 .course-item {
     background-color:#f1f1f1;
@@ -20,7 +17,7 @@
     padding: 1rem;
     display: flex;
     flex-direction: column;
-    width: 15rem;
+    
     word-wrap: break-word; 
     overflow-wrap: break-word;
 }
@@ -35,3 +32,4 @@
     width: 60%;
     margin: 0 auto;
 }
+

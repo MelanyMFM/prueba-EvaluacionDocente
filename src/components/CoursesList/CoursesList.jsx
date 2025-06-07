@@ -1,4 +1,3 @@
-import React from 'react';
 import './coursesList.css';
 
 function CoursesList({ courses, onSelectTeacher }) {
@@ -13,8 +12,8 @@ function CoursesList({ courses, onSelectTeacher }) {
             className={`course-item ${course.isEvaluated ? 'evaluated' : ''}`}
             onClick={() => !course.isEvaluated && onSelectTeacher(course.teacherId, course.courseId)}
           >
-            <h3>{course.courseName}</h3>
-            <p><strong>Docente:</strong> {course.teacherName}</p>
+            <h3>{ course.teacherName}</h3>
+            <p><strong>Asignatura:</strong> {course.courseName}</p>
             <p><strong>Grupo:</strong> {course.group}</p>
             {course.isEvaluated ? (
               <div className="evaluation-status">

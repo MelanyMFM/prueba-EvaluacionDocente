@@ -1,0 +1,14 @@
+{
+  "users": [
+    {
+      "email": "mberrioz@unal.edu.co",
+      "roles": ["estudiante", "admin"],
+      "name": "Marycielo Berrio"
+    },
+    {
+      "email": "mefrancom@unal.edu.co",
+      "roles": ["estudiante", "admin"],
+      "name": "Melany Franco"
+    }
+  ]
+} 

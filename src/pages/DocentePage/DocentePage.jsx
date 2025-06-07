@@ -1,15 +1,16 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../../context/AppContext';
+import { useAuth } from '../../contexts/AuthContext';
 import ResultadosEncuesta from '../../components/ResultadosEncuesta';
 import PeriodSelector from '../../components/PeriodSelector';
 import './docentePage.css';
 
 function DocentePage() {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const { 
     teachers, 
-    results, 
     studentCourses, 
     courses, 
     responses, 
@@ -19,53 +20,56 @@ function DocentePage() {
     areResultsPublishedForPeriod
   } = useContext(AppContext);
   
-  const [teacherId, setTeacherId] = useState('');
-  const [authenticated, setAuthenticated] = useState(false);
   const [teacherInfo, setTeacherInfo] = useState(null);
   const [teacherCourses, setTeacherCourses] = useState([]);
   const [courseResults, setCourseResults] = useState([]);
   const [selectedPeriod, setSelectedPeriod] = useState(currentPeriod);
   const [availablePeriods, setAvailablePeriods] = useState([]);
 
-  // Verificar si el ID del docente es válido
-  const handleAuthentication = () => {
-    const teacher = teachers.find(t => t.id === teacherId);
-    if (teacher) {
-      setAuthenticated(true);
-      setTeacherInfo(teacher);
-      
-      // Obtener periodos disponibles para este docente
-      const teacherPeriodsIds = [...new Set(
-        studentCourses
-          .filter(sc => sc.teacherId === teacherId)
-          .map(sc => sc.period)
-      )];
-      
-      const filteredPeriods = periods.filter(period => 
-        teacherPeriodsIds.includes(period.id)
-      );
-      
-      setAvailablePeriods(filteredPeriods);
-      
-      // Seleccionar el primer periodo disponible si el actual no está disponible
-      if (filteredPeriods.length > 0) {
-        const isCurrentPeriodAvailable = filteredPeriods.some(p => p.id === currentPeriod);
-        if (!isCurrentPeriodAvailable) {
-          const newPeriod = filteredPeriods[0].id;
-          setSelectedPeriod(newPeriod);
-          setCurrentPeriod(newPeriod);
-          
-          // Obtener las asignaturas del docente para el periodo seleccionado
-          updateTeacherCoursesAndResults(teacher.id, newPeriod);
-        } else {
-          // Obtener las asignaturas del docente para el periodo seleccionado
-          updateTeacherCoursesAndResults(teacher.id, currentPeriod);
-        }
-      }
-    } else {
-      alert('ID de docente no válido');
+  useEffect(() => {
+    if (!currentUser) {
+      navigate('/login');
+      return;
     }
-  };
+
+    // Obtener el ID del docente basado en el email
+    const teacher = teachers.find(t => t.email === currentUser.email);
+    if (!teacher) {
+      navigate('/login');
+      return;
+    }
+
+    setTeacherInfo(teacher);
+    
+    // Obtener periodos disponibles para este docente
+    const teacherPeriodsIds = [...new Set(
+      studentCourses
+        .filter(sc => sc.teacherId === teacher.id)
+        .map(sc => sc.period)
+    )];
+    
+    const filteredPeriods = periods.filter(period => 
+      teacherPeriodsIds.includes(period.id)
+    );
+    
+    setAvailablePeriods(filteredPeriods);
+    
+    // Seleccionar el primer periodo disponible si el actual no está disponible
+    if (filteredPeriods.length > 0) {
+      const isCurrentPeriodAvailable = filteredPeriods.some(p => p.id === currentPeriod);
+      if (!isCurrentPeriodAvailable) {
+        const newPeriod = filteredPeriods[0].id;
+        setSelectedPeriod(newPeriod);
+        setCurrentPeriod(newPeriod);
+        
+        // Obtener las asignaturas del docente para el periodo seleccionado
+        updateTeacherCoursesAndResults(teacher.id, newPeriod);
+      } else {
+        // Obtener las asignaturas del docente para el periodo seleccionado
+        updateTeacherCoursesAndResults(teacher.id, currentPeriod);
+      }
+    }
+  }, [currentUser, teachers, studentCourses, periods, currentPeriod, navigate]);
   
   // Función para actualizar cursos y resultados cuando cambia el periodo
   const updateTeacherCoursesAndResults = (teacherId, periodId) => {
@@ -139,7 +143,7 @@ function DocentePage() {
     setSelectedPeriod(periodId);
     setCurrentPeriod(periodId);
     
-    if (authenticated && teacherInfo) {
+    if (teacherInfo) {
       updateTeacherCoursesAndResults(teacherInfo.id, periodId);
     }
   };
@@ -147,67 +151,57 @@ function DocentePage() {
   // Verificar si los resultados están publicados para el periodo seleccionado
   const resultsPublished = selectedPeriod ? areResultsPublishedForPeriod(selectedPeriod) : false;
 
+  if (!currentUser || !teacherInfo) {
+    return null;
+  }
+
   return (
     <div className="docente-container">
       <h1>Portal Docente</h1>
-      
-      {!authenticated ? (
-        <div className="auth-container">
-          <h2>Ingrese su ID de docente</h2>
-          <input
-            type="text"
-            value={teacherId}
-            onChange={(e) => setTeacherId(e.target.value)}
-            placeholder="ID de docente"
-          />
-          <button onClick={handleAuthentication}>Ingresar</button>
+      <div className="teacher-dashboard">
+        <h2>Bienvenido(a), {teacherInfo.nombre}</h2>
+        
+        <PeriodSelector 
+          periods={availablePeriods}
+          selectedPeriod={selectedPeriod}
+          onSelectPeriod={handlePeriodChange}
+          label="Seleccione el periodo académico:"
+        />
+        
+        <div className="teacher-info">
+          <h3>Información del Docente</h3>
+          <p><strong>ID:</strong> {teacherInfo.id}</p>
+          <p><strong>Email:</strong> {teacherInfo.email}</p>
+          <p><strong>Periodo:</strong> {periods.find(p => p.id === selectedPeriod)?.nombre || 'No seleccionado'}</p>
+          <p><strong>Asignaturas:</strong> {teacherCourses.length > 0 ? teacherCourses.join(', ') : 'No hay asignaturas asignadas para este periodo'}</p>
         </div>
-      ) : (
-        <div className="teacher-dashboard">
-          <h2>Bienvenido(a), {teacherInfo.nombre}</h2>
-          
-          <PeriodSelector 
-            periods={availablePeriods}
-            selectedPeriod={selectedPeriod}
-            onSelectPeriod={handlePeriodChange}
-            label="Seleccione el periodo académico:"
-          />
-          
-          <div className="teacher-info">
-            <h3>Información del Docente</h3>
-            <p><strong>ID:</strong> {teacherInfo.id}</p>
-            <p><strong>Email:</strong> {teacherInfo.email}</p>
-            <p><strong>Periodo:</strong> {periods.find(p => p.id === selectedPeriod)?.nombre || 'No seleccionado'}</p>
-            <p><strong>Asignaturas:</strong> {teacherCourses.length > 0 ? teacherCourses.join(', ') : 'No hay asignaturas asignadas para este periodo'}</p>
+        
+        {resultsPublished ? (
+          <div className="teacher-results">
+            <h3>Resultados de su Evaluación - Periodo {selectedPeriod}</h3>
+            {courseResults.length > 0 ? (
+              <div className="results-card">
+                <ResultadosEncuesta 
+                  teacherName={teacherInfo.nombre}
+                  courseResults={courseResults}
+                  showTeacherName={false}
+                />
+              </div>
+            ) : (
+              <p>No hay resultados disponibles para su evaluación en este periodo.</p>
+            )}
           </div>
-          
-          {resultsPublished ? (
-            <div className="teacher-results">
-              <h3>Resultados de su Evaluación - Periodo {selectedPeriod}</h3>
-              {courseResults.length > 0 ? (
-                <div className="results-card">
-                  <ResultadosEncuesta 
-                    teacherName={teacherInfo.nombre}
-                    courseResults={courseResults}
-                    showTeacherName={false}
-                  />
-                </div>
-              ) : (
-                <p>No hay resultados disponibles para su evaluación en este periodo.</p>
-              )}
-            </div>
-          ) : (
-            <div className="no-results">
-              <p>Los resultados de la evaluación para el periodo {selectedPeriod} aún no han sido publicados.</p>
-              <p>Por favor, vuelva a consultar más tarde.</p>
-            </div>
-          )}
-          
-          <button onClick={() => navigate('/')} className="back-button">
-            Volver al Inicio
-          </button>
-        </div>
-      )}
+        ) : (
+          <div className="no-results">
+            <p>Los resultados de la evaluación para el periodo {selectedPeriod} aún no han sido publicados.</p>
+            <p>Por favor, vuelva a consultar más tarde.</p>
+          </div>
+        )}
+        
+        <button onClick={() => navigate('/')} className="back-button">
+          Volver al Inicio
+        </button>
+      </div>
     </div>
   );
 }
