@@ -1,52 +1,93 @@
-.courses-container{
+.courses-container {
     width: fit-content;
 }
 
 .courses-list {
     display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    justify-content: center;
-   
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
 }
-
 
 .course-item {
-    background-color: #f1f1f1;
+    background-color: #fff;
     border-radius: 8px;
-    padding: 1rem;
+    padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    
-    word-wrap: break-word; 
+    word-wrap: break-word;
     overflow-wrap: break-word;
     transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+    cursor: pointer;
 }
 
-/* Estilo para cursos ya evaluados */
+.course-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
 .course-item.evaluated {
     background-color: #f8f9fa;
     border: 2px solid #28a745;
     opacity: 0.8;
+    cursor: default;
 }
 
-.course-item button{
+.course-item h3 {
+    color: #333;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.courses-info {
+    margin-bottom: 1rem;
+}
+
+.courses-info p {
+    margin-bottom: 0.5rem;
+    color: #666;
+}
+
+.courses-info ul {
+    list-style: none;
+    padding-left: 1rem;
+    margin: 0;
+}
+
+.courses-info li {
+    color: #666;
+    margin-bottom: 0.25rem;
+    position: relative;
+    padding-left: 1rem;
+}
+
+.courses-info li:before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #007bff;
+}
+
+.course-item button {
     background-color: #007bff;
     color: white;
     border: none;
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1.5rem;
     border-radius: 4px;
     cursor: pointer;
     width: 60%;
     margin: 0 auto;
     transition: background-color 0.3s ease;
+    font-size: 1rem;
 }
 
 .course-item button:hover {
     background-color: #0056b3;
 }
 
-/* Estilos para el estado de evaluación */
 .evaluation-status {
     text-align: center;
     margin-top: 0.5rem;
@@ -58,19 +99,25 @@
     border-radius: 20px;
     font-weight: 600;
     font-size: 0.9rem;
-}
-
-.evaluated-badge {
     background-color: #28a745;
     color: white;
-    border: 2px solid #28a745;
-    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
 }
 
-.evaluation-note {
-    margin: 0.5rem 0 0 0;
-    font-size: 0.8rem;
-    color: #6c757d;
-    font-style: italic;
+.no-courses {
+    text-align: center;
+    color: #666;
+    padding: 2rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+    .course-item {
+        padding: 1rem;
+    }
+    
+    .course-item button {
+        width: 100%;
+    }
 }
 

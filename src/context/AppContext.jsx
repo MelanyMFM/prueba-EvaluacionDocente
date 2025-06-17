@@ -4,7 +4,8 @@ import React, { createContext, useState, useEffect } from 'react';
 const initialStudents = [
   { id: "1016592846", nombre: "VENUS IDALI SAAMS AQUITUARI", email: "vsaams@unal.edu.co" },
   { id: "1006868597", nombre: "JUAN SEBASTIAN FLOREZ PUELLO", email: "jflorezpu@unal.edu.co" },
-  { id: "1123623327", nombre: "ADAILSON CANTILLO PELUFO", email: "adcantillop@unal.edu.co" }
+  { id: "1123623327", nombre: "ADAILSON CANTILLO PELUFO", email: "adcantillop@unal.edu.co" },
+  { id: "123", nombre: "Melany", email: "mefrancom@unal.edu.co" },
 ];
 
 // Datos iniciales de docentes
@@ -52,7 +53,11 @@ const initialStudentCourses = [
   { studentId: "1123623327", courseId: "2016082", teacherId: "52023234", group: "CARI-01", period: "2023-2" },
   { studentId: "1123623327", courseId: "1000001-Z", teacherId: "40987816", group: "CARI-02", period: "2023-2" },
   { studentId: "1123623327", courseId: "1000002-Z", teacherId: "52189598", group: "CARI-02", period: "2023-2" },
-  { studentId: "1123623327", courseId: "8000150", teacherId: "73569871", group: "1", period: "2024-1" }
+  { studentId: "1123623327", courseId: "8000150", teacherId: "73569871", group: "1", period: "2024-1" },
+  { studentId: "123", courseId: "1000009-M", teacherId: "51709551", group: "CARI-01", period: "2023-2" },
+  { studentId: "123", courseId: "1000001-M", teacherId: "40987816", group: "CARI-02", period: "2023-2" },
+  { studentId: "123", courseId: "1000002-M", teacherId: "52189598", group: "CARI-04", period: "2023-2" },
+  { studentId: "123", courseId: "8000150", teacherId: "51709551", group: "1", period: "2023-2" },
 ];
 
 // Factores para las preguntas

@@ -77,7 +77,6 @@ function EstudiantePage() {
           .filter(sc => sc.studentId === student.id)
           .map(sc => sc.period)
       )];
-      
       const filteredPeriods = periods.filter(period => 
         studentPeriodsIds.includes(period.id)
       );
@@ -103,14 +102,16 @@ function EstudiantePage() {
     const student = students.find(s => s.email === currentUser.email);
     if (!student) {
       // Return example courses for temporary student
-      return courses.map(course => ({
-        courseId: course.id,
+      return [{
         teacherId: teachers[0]?.id,
-        courseName: course.nombre,
         teacherName: teachers[0]?.nombre || 'Profesor Ejemplo',
-        group: course.grupo,
+        courses: courses.map(course => ({
+          courseId: course.id,
+          courseName: course.nombre,
+          group: course.grupo
+        })),
         isEvaluated: false
-      }));
+      }];
     }
 
     // Get courses for registered student
@@ -118,27 +119,42 @@ function EstudiantePage() {
       sc => sc.studentId === student.id && sc.period === selectedPeriod
     );
     
-    return studentCoursesData.map(sc => {
+    // Agrupar cursos por docente
+    const teacherGroups = {};
+    
+    studentCoursesData.forEach(sc => {
       const course = courses.find(c => c.id === sc.courseId);
       const teacher = teachers.find(t => t.id === sc.teacherId);
       
-      // Check if course has been evaluated
+      if (!teacherGroups[sc.teacherId]) {
+        teacherGroups[sc.teacherId] = {
+          teacherId: sc.teacherId,
+          teacherName: teacher ? teacher.nombre : 'Profesor Desconocido',
+          courses: [],
+          isEvaluated: false
+        };
+      }
+      
+      // Agregar el curso a la lista de cursos del docente
+      teacherGroups[sc.teacherId].courses.push({
+        courseId: sc.courseId,
+        courseName: course ? course.nombre : 'Curso Desconocido',
+        group: sc.group
+      });
+      
+      // Verificar si el docente ya ha sido evaluado
       const isEvaluated = responses.some(
         r => r.studentId === student.id && 
              r.teacherId === sc.teacherId && 
-             r.courseId === sc.courseId &&
              r.periodId === selectedPeriod
       );
       
-      return {
-        courseId: sc.courseId,
-        teacherId: sc.teacherId,
-        courseName: course ? course.nombre : 'Curso Desconocido',
-        teacherName: teacher ? teacher.nombre : 'Profesor Desconocido',
-        group: sc.group,
-        isEvaluated: isEvaluated
-      };
+      if (isEvaluated) {
+        teacherGroups[sc.teacherId].isEvaluated = true;
+      }
     });
+    
+    return Object.values(teacherGroups);
   };
   
   /**
