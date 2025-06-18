@@ -7,7 +7,7 @@
     },
     {
       "email": "mefrancom@unal.edu.co",
-      "roles": ["estudiante", "admin"],
+      "roles": ["estudiante", "admin", "profesor"],
       "name": "Melany Franco"
     }
   ]

@@ -17,7 +17,8 @@ const initialTeachers = [
   { id: "73569871", nombre: "Raul Roman Romero", email: "rromanr@unal.edu.co" },
   { id: "52424848", nombre: "Johannie Lucia James Cruz", email: "jljamesc@unal.edu.co" },
   { id: "79244154", nombre: "Jairo Humberto Medina Calderon", email: "jhmedinac@unal.edu.co" },
-  { id: "52023234", nombre: "Juanita Montoya Galvis", email: "jmontoyaga@unal.edu.co" }
+  { id: "52023234", nombre: "Juanita Montoya Galvis", email: "jmontoyaga@unal.edu.co" },
+  { id: "123", nombre: "Melany Franco", email: "mefrancom@unal.edu.co" }
 ];
 
 // Datos iniciales de cursos
@@ -30,7 +31,8 @@ const initialCourses = [
   { id: "1000001-Z", nombre: "MATEMÁTICAS BÁSICAS", grupo: "CARI-02" },
   { id: "1000002-Z", nombre: "LECTO-ESCRITURA", grupo: "CARI-02" },
   { id: "1000089-C", nombre: "Cátedra nacional de inducción y preparación para la vida universitaria", grupo: "CARI-02" },
-  { id: "2016082", nombre: "Problemas contemporáneos de las artes", grupo: "CARI-01" }
+  { id: "2016082", nombre: "Problemas contemporáneos de las artes", grupo: "CARI-01" },
+  { id: "666", nombre: "catedra", grupo: "CARI-01" }
 ];
 
 // Periodos académicos iniciales
@@ -59,10 +61,12 @@ const initialStudentCourses = [
   { studentId: "123", courseId: "1000001-M", teacherId: "40987816", group: "CARI-02", period: "2023-2" },
   { studentId: "123", courseId: "1000002-M", teacherId: "52189598", group: "CARI-04", period: "2023-2" },
   { studentId: "123", courseId: "8000150", teacherId: "51709551", group: "1", period: "2023-2" },
+  { studentId: "123", courseId: "666", teacherId: "123", group: "CARI-01", period: "2023-2" },
   { studentId: "1234", courseId: "1000009-M", teacherId: "51709551", group: "CARI-01", period: "2023-2" },
   { studentId: "1234", courseId: "1000001-M", teacherId: "40987816", group: "CARI-02", period: "2023-2" },
   { studentId: "1234", courseId: "1000002-M", teacherId: "52189598", group: "CARI-04", period: "2023-2" },
   { studentId: "1234", courseId: "8000150", teacherId: "51709551", group: "1", period: "2023-2" },
+  { studentId: "1234", courseId: "666", teacherId: "123", group: "CARI-01", period: "2023-2" },
 ];
 
 // Factores para las preguntas
@@ -70,7 +74,6 @@ const factores = [
   { id: 1, nombre: "Factor 1" },
   { id: 2, nombre: "Factor 2" },
   { id: 3, nombre: "Factor 3" },
-  { id: 4, nombre: "Factor 4" }
 ];
 
 // Tipos de respuesta
@@ -165,19 +168,19 @@ const initialQuestions = [
   {
     id: 14,
     texto: "¿El docente adecuó o modificó sus métodos de enseñanza según las necesidades de los estudiantes?",
-    factor: 4,
+    factor: 3,
     tipoRespuesta: tiposRespuesta.FRECUENCIA
   },
   {
     id: 15,
     texto: "¿Las evaluaciones hechas por el docente lo condujeron a mejorar su aprendizaje?",
-    factor: 4,
+    factor: 3,
     tipoRespuesta: tiposRespuesta.FRECUENCIA
   },
   {
     id: 16,
     texto: "¿Los resultados de las evaluaciones fueron un reflejo adecuado de su aprendizaje?",
-    factor: 4,
+    factor: 3,
     tipoRespuesta: tiposRespuesta.BINARIA
   },
   {
@@ -189,7 +192,7 @@ const initialQuestions = [
   {
     id: 18,
     texto: "¿Qué aspectos positivos destacaría del desempeño del docente?",
-    factor: 5,
+    factor: 3,
     tipoRespuesta: tiposRespuesta.ABIERTA
   }
 ];
@@ -362,7 +365,9 @@ export const AppProvider = ({ children }) => {
       if (!teacherResponses[response.teacherId]) {
         teacherResponses[response.teacherId] = {
           teacherId: response.teacherId,
-          responses: []
+          responses: [],
+          factores: {},
+          periodo: periodId
         };
       }
       
@@ -377,42 +382,80 @@ export const AppProvider = ({ children }) => {
       
       if (!teacherInfo) return;
       
-      // Calcular puntaje promedio de todas las respuestas
-      let totalPuntaje = 0;
-      let totalRespuestas = 0;
+      // Inicializar estructura para factores
+      const factoresResultados = {};
+      factoresDisponibles.forEach(factor => {
+        factoresResultados[factor.id] = {
+          nombre: factor.nombre,
+          totalPuntos: 0,
+          puntosMaximos: 0,
+          promedio: 0
+        };
+      });
       
+      // Calcular puntaje por factor
       teacher.responses.forEach(response => {
-        // Calcular puntaje ponderado de esta respuesta
-        let responsePuntaje = 0;
-        let totalWeight = 0;
-        
         response.answers.forEach((answer, index) => {
-          // Obtener la pregunta correspondiente
           const question = questions[index];
+          if (!question || question.tipoRespuesta === tiposRespuesta.ABIERTA) return;
           
-          // Solo incluir en el cálculo si no es una pregunta abierta
-          if (question && question.tipoRespuesta !== tiposRespuesta.ABIERTA) {
-            // Aplicar peso de la pregunta
-            const weight = questionWeights[index] || 10;
-            responsePuntaje += answer * weight;
-            totalWeight += weight;
+          const factor = question.factor;
+          if (!factoresResultados[factor]) return;
+          
+          // Calcular puntaje según el tipo de respuesta
+          let puntos = 0;
+          let puntosMaximos = 0;
+          
+          switch (question.tipoRespuesta) {
+            case tiposRespuesta.BINARIA:
+              puntos = answer === 5 ? 4 : answer === 1 ? 2 : 0; // Sí=4, No=2, No sé=0
+              puntosMaximos = 4;
+              break;
+            case tiposRespuesta.FRECUENCIA:
+              puntos = answer === 5 ? 4 : answer === 3 ? 3 : answer === 2 ? 1 : 0; // Siempre=4, Frecuentemente=3, A veces=1, Nunca=0
+              puntosMaximos = 4;
+              break;
+            case tiposRespuesta.FRECUENCIA_NA:
+              puntos = answer === 5 ? 4 : answer === 3 ? 3 : answer === 2 ? 1 : 0; // Siempre=4, Frecuentemente=3, A veces=1, Nunca/N/A=0
+              puntosMaximos = 4;
+              break;
+            case tiposRespuesta.VALORACION:
+              puntos = answer === 5 ? 4 : answer === 4 ? 3 : answer === 2 ? 1 : 0; // Muy alto=4, Alto=3, Bajo=1, Muy bajo=0
+              puntosMaximos = 4;
+              break;
+            default:
+              puntos = answer;
+              puntosMaximos = 5;
           }
+          
+          factoresResultados[factor].totalPuntos += puntos;
+          factoresResultados[factor].puntosMaximos += puntosMaximos;
         });
-        
-        // Solo calcular el promedio si hay preguntas numéricas
-        if (totalWeight > 0) {
-          // Normalizar a escala 0-5
-          const normalizedPuntaje = (responsePuntaje / totalWeight) * 5;
-          totalPuntaje += normalizedPuntaje;
-          totalRespuestas++;
+      });
+      
+      // Calcular promedios por factor
+      let totalPuntosGeneral = 0;
+      let totalPuntosMaximosGeneral = 0;
+      
+      Object.values(factoresResultados).forEach(factor => {
+        if (factor.puntosMaximos > 0) {
+          // Convertir a escala 0-5
+          factor.promedio = ((factor.totalPuntos / factor.puntosMaximos) * 5).toFixed(2);
+          totalPuntosGeneral += factor.totalPuntos;
+          totalPuntosMaximosGeneral += factor.puntosMaximos;
         }
       });
       
-      const promedioPuntaje = totalRespuestas > 0 ? totalPuntaje / totalRespuestas : 0;
+      // Calcular promedio general
+      const promedioGeneral = totalPuntosMaximosGeneral > 0 
+        ? ((totalPuntosGeneral / totalPuntosMaximosGeneral) * 5).toFixed(2)
+        : "0.00";
       
       teacherResults[teacher.teacherId] = {
         nombre: teacherInfo.nombre,
-        puntaje: promedioPuntaje.toFixed(2)
+        factores: factoresResultados,
+        promedioGeneral,
+        periodo: periodId
       };
     });
     

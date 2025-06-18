@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import ResultadosEncuesta from '../../components/ResultadosEncuesta';
 import PeriodSelector from '../../components/PeriodSelector';
 import './docentePage.css';
+import * as XLSX from 'xlsx';
 
 function DocentePage() {
   const navigate = useNavigate();
@@ -151,6 +152,19 @@ function DocentePage() {
   // Verificar si los resultados están publicados para el periodo seleccionado
   const resultsPublished = selectedPeriod ? areResultsPublishedForPeriod(selectedPeriod) : false;
 
+  // Función para exportar los resultados a Excel
+  const exportToExcel = () => {
+    if (!courseResults.length) return;
+    const wb = XLSX.utils.book_new();
+    const wsData = [
+      ['Asignatura', 'Participaciones', 'Nota'],
+      ...courseResults.map(r => [r.nombreAsignatura, r.participaciones, r.nota])
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    XLSX.utils.book_append_sheet(wb, ws, 'Resultados');
+    XLSX.writeFile(wb, `Resultados_${teacherInfo.nombre.replace(/ /g, '_')}_${selectedPeriod}.xlsx`);
+  };
+
   if (!currentUser || !teacherInfo) {
     return null;
   }
@@ -180,13 +194,18 @@ function DocentePage() {
           <div className="teacher-results">
             <h3>Resultados de su Evaluación - Periodo {selectedPeriod}</h3>
             {courseResults.length > 0 ? (
-              <div className="results-card">
-                <ResultadosEncuesta 
-                  teacherName={teacherInfo.nombre}
-                  courseResults={courseResults}
-                  showTeacherName={false}
-                />
-              </div>
+              <>
+                <button className="btn-success" style={{marginBottom: '1rem'}} onClick={() => exportToExcel()}>
+                  Descargar Excel
+                </button>
+                <div className="results-card">
+                  <ResultadosEncuesta 
+                    teacherName={teacherInfo.nombre}
+                    courseResults={courseResults}
+                    showTeacherName={false}
+                  />
+                </div>
+              </>
             ) : (
               <p>No hay resultados disponibles para su evaluación en este periodo.</p>
             )}
