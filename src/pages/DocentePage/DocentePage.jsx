@@ -157,8 +157,13 @@ function DocentePage() {
     if (!courseResults.length) return;
     const wb = XLSX.utils.book_new();
     const wsData = [
-      ['Asignatura', 'Participaciones', 'Nota'],
-      ...courseResults.map(r => [r.nombreAsignatura, r.participaciones, r.nota])
+      ['Docente', teacherInfo.nombre],
+      ['Periodo', selectedPeriod],
+      ['Promedio General', courseResults[0].promedioGeneral],
+      [''],
+      ['Factores'],
+      ['Factor', 'Promedio'],
+      ...courseResults[0].factores.map(f => [f.nombre, f.promedio])
     ];
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     XLSX.utils.book_append_sheet(wb, ws, 'Resultados');
