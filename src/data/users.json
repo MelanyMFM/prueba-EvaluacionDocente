@@ -9,6 +9,11 @@
       "email": "mefrancom@unal.edu.co",
       "roles": ["estudiante", "admin", "profesor"],
       "name": "Melany Franco"
+    },
+    {
+      "email": "natocancipag@unal.edu.co",
+      "roles": ["estudiante", "admin", "profesor"],
+      "name": "Nestor Augusto Tocancipa"
     }
   ]
 } 

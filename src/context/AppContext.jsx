@@ -6,7 +6,8 @@ const initialStudents = [
   { id: "1006868597", nombre: "JUAN SEBASTIAN FLOREZ PUELLO", email: "jflorezpu@unal.edu.co" },
   { id: "1123623327", nombre: "ADAILSON CANTILLO PELUFO", email: "adcantillop@unal.edu.co" },
   { id: "123", nombre: "Melany", email: "mefrancom@unal.edu.co" },
-  { id: "1234", nombre: "Marycielo", email: "mberrioz@unal.edu.co" }
+  { id: "1234", nombre: "Marycielo", email: "mberrioz@unal.edu.co" },
+  { id: "12345", nombre: "Nestor Augusto Tocancipa", email: "natocancipag@unal.edu.co" }
 ];
 
 // Datos iniciales de docentes
@@ -19,7 +20,8 @@ const initialTeachers = [
   { id: "79244154", nombre: "Jairo Humberto Medina Calderon", email: "jhmedinac@unal.edu.co" },
   { id: "52023234", nombre: "Juanita Montoya Galvis", email: "jmontoyaga@unal.edu.co" },
   { id: "123", nombre: "Melany Franco", email: "mefrancom@unal.edu.co" },
-  { id: "1234", nombre: "Marycielo Berrio", email: "mberrioz@unal.edu.co" }
+  { id: "1234", nombre: "Marycielo Berrio", email: "mberrioz@unal.edu.co" },
+  { id: "12345", nombre: "Nestor Augusto Tocancipa", email: "natocancipag@unal.edu.co" }
 ];
 
 // Datos iniciales de cursos
@@ -33,7 +35,7 @@ const initialCourses = [
   { id: "1000002-Z", nombre: "LECTO-ESCRITURA", grupo: "CARI-02" },
   { id: "1000089-C", nombre: "Cátedra nacional de inducción y preparación para la vida universitaria", grupo: "CARI-02" },
   { id: "2016082", nombre: "Problemas contemporáneos de las artes", grupo: "CARI-01" },
-  { id: "666", nombre: "catedra", grupo: "CARI-01" }
+  { id: "666", nombre: "catedra de prueba", grupo: "CARI-01" }
 ];
 
 // Periodos académicos iniciales
@@ -68,6 +70,11 @@ const initialStudentCourses = [
   { studentId: "1234", courseId: "1000002-M", teacherId: "52189598", group: "CARI-04", period: "2023-2" },
   { studentId: "1234", courseId: "8000150", teacherId: "51709551", group: "1", period: "2023-2" },
   { studentId: "1234", courseId: "666", teacherId: "1234", group: "CARI-01", period: "2023-2" },
+  { studentId: "12345", courseId: "1000009-M", teacherId: "51709551", group: "CARI-01", period: "2023-2" },
+  { studentId: "12345", courseId: "1000001-M", teacherId: "40987816", group: "CARI-02", period: "2023-2" },
+  { studentId: "12345", courseId: "1000002-M", teacherId: "52189598", group: "CARI-04", period: "2023-2" },
+  { studentId: "12345", courseId: "8000150", teacherId: "51709551", group: "1", period: "2023-2" },
+  { studentId: "12345", courseId: "666", teacherId: "12345", group: "CARI-01", period: "2023-2" },
 ];
 
 // Factores para las preguntas
