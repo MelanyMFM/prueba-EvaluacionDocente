@@ -18,7 +18,8 @@ const initialTeachers = [
   { id: "52424848", nombre: "Johannie Lucia James Cruz", email: "jljamesc@unal.edu.co" },
   { id: "79244154", nombre: "Jairo Humberto Medina Calderon", email: "jhmedinac@unal.edu.co" },
   { id: "52023234", nombre: "Juanita Montoya Galvis", email: "jmontoyaga@unal.edu.co" },
-  { id: "123", nombre: "Melany Franco", email: "mefrancom@unal.edu.co" }
+  { id: "123", nombre: "Melany Franco", email: "mefrancom@unal.edu.co" },
+  { id: "1234", nombre: "Marycielo Berrio", email: "mberrioz@unal.edu.co" }
 ];
 
 // Datos iniciales de cursos
@@ -66,7 +67,7 @@ const initialStudentCourses = [
   { studentId: "1234", courseId: "1000001-M", teacherId: "40987816", group: "CARI-02", period: "2023-2" },
   { studentId: "1234", courseId: "1000002-M", teacherId: "52189598", group: "CARI-04", period: "2023-2" },
   { studentId: "1234", courseId: "8000150", teacherId: "51709551", group: "1", period: "2023-2" },
-  { studentId: "1234", courseId: "666", teacherId: "123", group: "CARI-01", period: "2023-2" },
+  { studentId: "1234", courseId: "666", teacherId: "1234", group: "CARI-01", period: "2023-2" },
 ];
 
 // Factores para las preguntas

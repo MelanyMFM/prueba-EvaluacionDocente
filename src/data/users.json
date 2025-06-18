@@ -2,7 +2,7 @@
   "users": [
     {
       "email": "mberrioz@unal.edu.co",
-      "roles": ["estudiante", "admin"],
+      "roles": ["estudiante", "admin", "profesor"],
       "name": "Marycielo Berrio"
     },
     {
