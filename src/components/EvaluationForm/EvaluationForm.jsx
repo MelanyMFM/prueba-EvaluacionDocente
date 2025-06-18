@@ -18,7 +18,7 @@ function EvaluationForm({ studentId, teacherId, courseId, periodId, onComplete }
   
   const handleAnswerChange = (index, value) => {
     const newAnswers = [...answers];
-    newAnswers[index] = parseInt(value);
+    newAnswers[index] = value;
     setAnswers(newAnswers);
   };
   
@@ -26,7 +26,14 @@ function EvaluationForm({ studentId, teacherId, courseId, periodId, onComplete }
     e.preventDefault();
     
     // Verificar que todas las preguntas tienen respuesta (no son null)
-    const allQuestionsAnswered = answers.every(answer => answer !== null);
+    const allQuestionsAnswered = answers.every((answer, index) => {
+      const question = questionsArray[index];
+      // Para preguntas abiertas, verificar que no esté vacío
+      if (question.tipoRespuesta === 'abierta') {
+        return answer !== null && answer.trim() !== '';
+      }
+      return answer !== null;
+    });
     
     if (!allQuestionsAnswered) {
       alert('Por favor, responda todas las preguntas');
@@ -83,6 +90,20 @@ function EvaluationForm({ studentId, teacherId, courseId, periodId, onComplete }
     
     // Para el nuevo formato con tipos de respuesta
     switch (question.tipoRespuesta) {
+      case 'abierta':
+        return (
+          <div className="open-question-container">
+            <textarea
+              value={answers[index] || ''}
+              onChange={(e) => handleAnswerChange(index, e.target.value)}
+              placeholder="Escriba su respuesta aquí..."
+              required
+              rows={4}
+              className="open-question-textarea"
+            />
+          </div>
+        );
+      
       case 'binaria':
         return (
           <div className="rating-container binaria">

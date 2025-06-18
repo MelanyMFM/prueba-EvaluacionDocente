@@ -6,6 +6,7 @@ const initialStudents = [
   { id: "1006868597", nombre: "JUAN SEBASTIAN FLOREZ PUELLO", email: "jflorezpu@unal.edu.co" },
   { id: "1123623327", nombre: "ADAILSON CANTILLO PELUFO", email: "adcantillop@unal.edu.co" },
   { id: "123", nombre: "Melany", email: "mefrancom@unal.edu.co" },
+  { id: "1234", nombre: "Marycielo", email: "mberrioz@unal.edu.co" }
 ];
 
 // Datos iniciales de docentes
@@ -58,6 +59,10 @@ const initialStudentCourses = [
   { studentId: "123", courseId: "1000001-M", teacherId: "40987816", group: "CARI-02", period: "2023-2" },
   { studentId: "123", courseId: "1000002-M", teacherId: "52189598", group: "CARI-04", period: "2023-2" },
   { studentId: "123", courseId: "8000150", teacherId: "51709551", group: "1", period: "2023-2" },
+  { studentId: "1234", courseId: "1000009-M", teacherId: "51709551", group: "CARI-01", period: "2023-2" },
+  { studentId: "1234", courseId: "1000001-M", teacherId: "40987816", group: "CARI-02", period: "2023-2" },
+  { studentId: "1234", courseId: "1000002-M", teacherId: "52189598", group: "CARI-04", period: "2023-2" },
+  { studentId: "1234", courseId: "8000150", teacherId: "51709551", group: "1", period: "2023-2" },
 ];
 
 // Factores para las preguntas
@@ -73,7 +78,8 @@ const tiposRespuesta = {
   BINARIA: "binaria", // Sí/No
   FRECUENCIA: "frecuencia", // Nunca/A veces/Frecuentemente/Siempre
   FRECUENCIA_NA: "frecuencia_na", // Nunca/A veces/Frecuentemente/Siempre/No aplica
-  VALORACION: "valoracion" // Muy bajo/Bajo/Alto/Muy alto
+  VALORACION: "valoracion", // Muy bajo/Bajo/Alto/Muy alto
+  ABIERTA: "abierta" // Respuesta de texto libre
 };
 
 // Preguntas iniciales con factor y tipo de respuesta
@@ -179,6 +185,12 @@ const initialQuestions = [
     texto: "El desempeño global de este docente fue:",
     factor: 1,
     tipoRespuesta: tiposRespuesta.VALORACION
+  },
+  {
+    id: 18,
+    texto: "¿Qué aspectos positivos destacaría del desempeño del docente?",
+    factor: 5,
+    tipoRespuesta: tiposRespuesta.ABIERTA
   }
 ];
 
@@ -375,17 +387,25 @@ export const AppProvider = ({ children }) => {
         let totalWeight = 0;
         
         response.answers.forEach((answer, index) => {
-          // Aplicar peso de la pregunta
-          const weight = questionWeights[index] || 10;
-          responsePuntaje += answer * weight;
-          totalWeight += weight;
+          // Obtener la pregunta correspondiente
+          const question = questions[index];
+          
+          // Solo incluir en el cálculo si no es una pregunta abierta
+          if (question && question.tipoRespuesta !== tiposRespuesta.ABIERTA) {
+            // Aplicar peso de la pregunta
+            const weight = questionWeights[index] || 10;
+            responsePuntaje += answer * weight;
+            totalWeight += weight;
+          }
         });
         
-        // Normalizar a escala 0-5
-        const normalizedPuntaje = totalWeight > 0 ? (responsePuntaje / totalWeight) * 5 : 0;
-        
-        totalPuntaje += normalizedPuntaje;
-        totalRespuestas++;
+        // Solo calcular el promedio si hay preguntas numéricas
+        if (totalWeight > 0) {
+          // Normalizar a escala 0-5
+          const normalizedPuntaje = (responsePuntaje / totalWeight) * 5;
+          totalPuntaje += normalizedPuntaje;
+          totalRespuestas++;
+        }
       });
       
       const promedioPuntaje = totalRespuestas > 0 ? totalPuntaje / totalRespuestas : 0;
