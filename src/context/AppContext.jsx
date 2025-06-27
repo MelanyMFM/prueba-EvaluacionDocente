@@ -80,7 +80,7 @@ export const AppProvider = ({ children }) => {
         setResultsPublished(publishedSnap.data());
       }
 
-      const resultsSnap = await getDoc(doc(db2, "results", `${currentPeriod}_${currentSede}`));
+      const resultsSnap = await getDoc(doc(db2, "resultsForm", `${currentPeriod}_${currentSede}`));
       if (resultsSnap.exists()) {
         setResults(resultsSnap.data());
       } else {
@@ -230,7 +230,7 @@ const eliminarPregunta = async (id) => {
       };
     });
 
-    const ref = doc(db2, "results", `${currentPeriod}_${currentSede}`);
+    const ref = doc(db2, "resultsForm", `${currentPeriod}_${currentSede}`);
     await setDoc(ref, resultados);
     setResults(resultados);
 
@@ -248,19 +248,32 @@ const eliminarPregunta = async (id) => {
       // Crear un ID único combinando atributos claves
       const responseId = `${response.studentId}_${response.teacherId}_${response.courseId}_${response.periodId}`;
   
-      // Referencia a documento con ID personalizado
+      // Agregar sede (debe venir del contexto actual)
+      const sede = currentSede; // lo tomamos desde AppContext
+  
+      // Construir objeto con sede incluida
+      const responseWithSede = {
+        ...response,
+        sede
+      };
+  
+      // Referencia al documento con ID personalizado
       const responseRef = doc(db2, 'results', responseId);
   
-      // Guardar documento con ese ID (setDoc sobrescribe si existe)
-      await setDoc(responseRef, response);
+      // Guardar en Firestore
+      await setDoc(responseRef, responseWithSede);
   
-      // Actualizar estado local si tienes (opcional)
-      setResponses(prev => [...prev.filter(r => r.id !== responseId), {...response, id: responseId}]);
+      // Actualizar estado local
+      setResponses(prev => [
+        ...prev.filter(r => r.id !== responseId),
+        { ...responseWithSede, id: responseId }
+      ]);
     } catch (error) {
       console.error("Error guardando respuesta:", error);
       throw error;
     }
   };
+  
 
   return (
     <AppContext.Provider value={{

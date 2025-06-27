@@ -147,10 +147,7 @@ function AdminPage() {
 
         {activeTab === 'resultados' && (
           <ResultadosTab 
-            resultsPublished={isResultsPublished()}
-            publishResults={handlePublishResults}
-            responses={filteredResponses}
-            results={resultsForPeriod}
+        
           />
         )}
 
