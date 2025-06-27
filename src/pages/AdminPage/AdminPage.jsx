@@ -8,6 +8,9 @@ import ProgramacionTab from "../../components/AdminTabs/ProgramacionTab/Programa
 import PeriodSelector from "../../components/PeriodSelector";
 import './adminPage.css';
 
+import { setDoc, doc, collection, query, where, getDoc } from 'firebase/firestore';
+import { db2 } from '../../firebaseApp2';
+
 function AdminPage() {
   const navigate = useNavigate();
   const {
@@ -27,13 +30,64 @@ function AdminPage() {
     studentCourses,
     courses,
     currentSede,
-    setCurrentSede // opcional si deseas sincronizar la sede seleccionada
+    setCurrentSede,
+    setPeriods
   } = useContext(AppContext);
 
   const sedesDisponibles = ['Caribe', 'Bogotá'];
   const [activeTab, setActiveTab] = useState('encuesta');
   const [selectedPeriod, setSelectedPeriod] = useState(currentPeriod || (periods.length > 0 ? periods[0].id : null));
-  const [selectedSede, setSelectedSede] = useState(currentSede); // nuevo estado
+  const [selectedSede, setSelectedSede] = useState(currentSede);
+
+  const [nuevoPeriodoId, setNuevoPeriodoId] = useState('');
+  const [crearError, setCrearError] = useState(null);
+  const [crearExito, setCrearExito] = useState(null);
+
+  const [creandoPeriodo, setCreandoPeriodo] = useState(false);
+
+  const crearNuevoPeriodo = async () => {
+    setCrearError(null);
+    setCrearExito(null);
+  
+    const trimmedId = nuevoPeriodoId.trim();
+  
+    if (!trimmedId) {
+      setCrearError('Debe ingresar el ID del periodo.');
+      return;
+    }
+  
+    if (creandoPeriodo) return; // 🔒 Previene múltiples ejecuciones
+  
+    setCreandoPeriodo(true);
+  
+    try {
+      const docRef = doc(db2, 'periods', trimmedId);
+      const existingDoc = await getDoc(docRef);
+  
+      if (existingDoc.exists()) {
+        setCrearError('El periodo con ese ID ya existe.');
+        setCreandoPeriodo(false);
+        return;
+      }
+  
+      await setDoc(docRef, {
+        id: trimmedId,
+        nombre: trimmedId
+      });
+  
+ 
+      setPeriods(prev => [...prev, { id: trimmedId, nombre: trimmedId }]);
+  
+      setCrearExito(`Periodo creado exitosamente con ID: ${trimmedId}`);
+      setNuevoPeriodoId('');
+    } catch (error) {
+      console.error('Error al crear periodo:', error);
+      setCrearError('Ocurrió un error al crear el periodo.');
+    } finally {
+      setCreandoPeriodo(false);
+    }
+  };
+  
 
   useEffect(() => {
     if (currentPeriod !== selectedPeriod) {
@@ -71,7 +125,7 @@ function AdminPage() {
   };
 
   const handlePublishResults = () => {
-    publishResults(); // asume que usa currentPeriod y currentSede
+    publishResults();
   };
 
   const filteredResponses = responses.filter(r => {
@@ -125,6 +179,9 @@ function AdminPage() {
         <button className={activeTab === 'resultados' ? 'active' : ''} onClick={() => setActiveTab('resultados')}>
           Resultados
         </button>
+        <button className={activeTab === 'crearPeriodo' ? 'active' : ''} onClick={() => setActiveTab('crearPeriodo')}>
+          Crear Periodo Académico
+        </button>
         <button className={activeTab === 'programacion' ? 'active' : ''} onClick={() => setActiveTab('programacion')}>
           Programación Académica
         </button>
@@ -140,15 +197,27 @@ function AdminPage() {
         )}
 
         {activeTab === 'preguntas' && (
-          <PreguntasTab 
-            
-          />
+          <PreguntasTab />
+        )}
+
+        {activeTab === 'crearPeriodo' && (
+          <div className="crear-periodo">
+            <h3>Crear Nuevo Periodo Académico</h3>
+            <input
+              type="text"
+              placeholder="ID del periodo (ej: 2025-1)"
+              value={nuevoPeriodoId}
+              onChange={(e) => setNuevoPeriodoId(e.target.value)}
+            />
+            <button onClick={crearNuevoPeriodo}>Crear Periodo</button>
+
+            {crearError && <p className="error-message">{crearError}</p>}
+            {crearExito && <p className="success-message">{crearExito}</p>}
+          </div>
         )}
 
         {activeTab === 'resultados' && (
-          <ResultadosTab 
-        
-          />
+          <ResultadosTab />
         )}
 
         {activeTab === 'programacion' && (

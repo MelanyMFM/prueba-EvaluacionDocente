@@ -290,6 +290,7 @@ const eliminarPregunta = async (id) => {
       agregarPregunta,
       editarPregunta,
       eliminarPregunta,
+      setPeriods
     }}>
       {children}
     </AppContext.Provider>
