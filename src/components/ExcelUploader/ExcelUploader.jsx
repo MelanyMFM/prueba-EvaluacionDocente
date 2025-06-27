@@ -22,34 +22,125 @@ function ExcelUploader() {
       setError('Por favor, seleccione un archivo Excel');
       return;
     }
-
+  
     setLoading(true);
     setError(null);
     setResult(null);
-
+  
     try {
-      let  data = await readExcelFile(file);
+      let data = await readExcelFile(file);
       if (!validateExcelData(data)) {
         setError('El archivo Excel no tiene el formato correcto');
         setLoading(false);
         return;
       }
-      // Eliminar la primera fila
-        data.shift();
-      
-      // Actualizar la programación académica
-      const updateResult = updateAcademicSchedule(data);
-      
+  
+      // Quitar cabecera si es necesario
+      data.shift();
+  
+      // Importamos Firestore y db
+      const { collection, doc, setDoc, getDoc } = await import('firebase/firestore');
+      const { db2 } = await import('../../firebaseApp2');
+  
+      // Sets para evitar duplicados
+      const newStudents = new Map();
+      const newTeachers = new Map();
+      const newCourses = new Map();
+  
+      const academicEnrollments = []; // Para studentCourses
+  
+      for (const row of data) {
+        const periodo = row['PERIODO']?.toString().trim();
+        const studentId = row['DOCUMENTO']?.toString().trim();
+        const teacherId = row['DOC_DOCENTE_PPAL']?.toString().trim();
+        const courseId = row['ID_ASIGNATURA']?.toString().trim();
+        const sede = row['SEDE']?.toString().trim();
+  
+        // Validaciones básicas
+        if (!periodo || !studentId || !teacherId || !courseId) continue;
+  
+        // Verificar estudiantes
+        if (!newStudents.has(studentId)) {
+          const studentRef = doc(db2, 'students', studentId);
+          const studentSnap = await getDoc(studentRef);
+          if (!studentSnap.exists()) {
+            newStudents.set(studentId, {
+              id: studentId,
+              nombre: row['NOMBRE_ESTUDIANTE']?.toString().trim() || '',
+              email: row['EMAIL']?.toString().trim() || ''
+            });
+          }
+        }
+  
+        // Verificar docentes
+        if (!newTeachers.has(teacherId)) {
+          const teacherRef = doc(db2, 'teachers', teacherId);
+          const teacherSnap = await getDoc(teacherRef);
+          if (!teacherSnap.exists()) {
+            newTeachers.set(teacherId, {
+              id: teacherId,
+              nombre: row['NOMBRE_DOCENTE_PRINCIPAL']?.toString().trim() || '',
+              email: row['EMAIL_DOCENTE_PRINCIPAL']?.toString().trim() || ''
+            });
+          }
+        }
+  
+        // Verificar asignaturas
+        if (!newCourses.has(courseId)) {
+          const courseRef = doc(db2, 'courses', courseId);
+          const courseSnap = await getDoc(courseRef);
+          if (!courseSnap.exists()) {
+            newCourses.set(courseId, {
+              id: courseId,
+              nombre: row['ASIGNATURA']?.toString().trim() || '',
+              sede: sede || 'Caribe'
+            });
+          }
+        }
+  
+        // Agregar a studentCourses
+        academicEnrollments.push({
+          studentId,
+          teacherId,
+          courseId,
+          period: periodo
+        });
+      }
+  
+      // Guardar en Firebase
+      const savePromises = [];
+      for (const [id, student] of newStudents) {
+        savePromises.push(setDoc(doc(db2, 'students', id), student));
+      }
+      for (const [id, teacher] of newTeachers) {
+        savePromises.push(setDoc(doc(db2, 'teachers', id), teacher));
+      }
+      for (const [id, course] of newCourses) {
+        savePromises.push(setDoc(doc(db2, 'courses', id), course));
+      }
+      for (const enrollment of academicEnrollments) {
+        const id = `${enrollment.studentId}_${enrollment.teacherId}_${enrollment.courseId}_${enrollment.period}`;
+        savePromises.push(setDoc(doc(db2, 'studentCourses', id), enrollment));
+      }
+  
+      await Promise.all(savePromises);
+  
       setResult({
         message: 'Programación académica actualizada con éxito',
-        details: updateResult
+        details: {
+          studentsCount: newStudents.size,
+          teachersCount: newTeachers.size,
+          coursesCount: newCourses.size
+        }
       });
     } catch (err) {
+      console.error(err);
       setError(`Error al procesar el archivo: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
+  
 
   const readExcelFile = (file) => {
     return new Promise((resolve, reject) => {
