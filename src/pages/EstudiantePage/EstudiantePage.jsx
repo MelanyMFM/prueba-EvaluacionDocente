@@ -185,10 +185,25 @@ function EstudiantePage() {
    * @param {string} courseId - Selected course ID
    */
   const handleSelectTeacher = (teacherId, courseId) => {
+    const studentId = students.find(s => s.email === currentUser.email)?.id || currentUser.uid;
+  
+    const yaEvaluado = responses.some(
+      r => r.studentId === studentId &&
+           r.teacherId === teacherId &&
+           r.courseId === courseId &&
+           r.periodId === selectedPeriod
+    );
+  
+    if (yaEvaluado) {
+      alert("Ya has evaluado a este profesor en este curso para este periodo.");
+      return;
+    }
+  
     setSelectedTeacher(teacherId);
     setSelectedCourse(courseId);
     setShowEvaluationForm(true);
   };
+  
   
   /**
    * Handle evaluation form submission

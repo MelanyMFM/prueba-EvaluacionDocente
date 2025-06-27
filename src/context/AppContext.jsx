@@ -41,6 +41,13 @@ export const AppProvider = ({ children }) => {
 
   // Cargar datos desde Firebase al inicio
   useEffect(() => {
+
+    const loadResponses = async () => {
+      const snapshot = await getDocs(collection(db2, 'results'));
+      const loadedResponses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setResponses(loadedResponses);
+    };
+
     const loadData = async () => {
       const loadCollection = async (name) => {
         const snapshot = await getDocs(collection(db2, name));
@@ -55,6 +62,8 @@ export const AppProvider = ({ children }) => {
       const loadedPeriods = await loadCollection("periods");
       setPeriods(loadedPeriods);
       setCurrentPeriod(loadedPeriods[0]?.id || null);
+      await loadResponses();
+
     };
 
     loadData();
