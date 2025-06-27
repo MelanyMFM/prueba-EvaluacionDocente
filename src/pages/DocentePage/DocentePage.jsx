@@ -2,6 +2,8 @@ import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../../context/AppContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { db2 } from '../../firebaseApp2';
 import ResultadosEncuesta from '../../components/ResultadosEncuesta';
 import PeriodSelector from '../../components/PeriodSelector';
 import './docentePage.css';
@@ -14,18 +16,21 @@ function DocentePage() {
     teachers, 
     studentCourses, 
     courses, 
-    responses, 
     periods,
     currentPeriod,
+    currentSede,
     setCurrentPeriod,
-    areResultsPublishedForPeriod
+    areResultsPublishedForPeriod // si lo usas para algo más, si no puedes quitarlo
   } = useContext(AppContext);
   
   const [teacherInfo, setTeacherInfo] = useState(null);
   const [teacherCourses, setTeacherCourses] = useState([]);
+  const [responses, setResponses] = useState([]);
+  const [results, setResults] = useState({});
   const [courseResults, setCourseResults] = useState([]);
   const [selectedPeriod, setSelectedPeriod] = useState(currentPeriod);
   const [availablePeriods, setAvailablePeriods] = useState([]);
+  const [resultsPublished, setResultsPublished] = useState(false);
 
   useEffect(() => {
     if (!currentUser) {
@@ -33,141 +38,183 @@ function DocentePage() {
       return;
     }
 
-    // Obtener el ID del docente basado en el email
+    // Obtener datos del docente según su email
     const teacher = teachers.find(t => t.email === currentUser.email);
     if (!teacher) {
       navigate('/login');
       return;
     }
-
     setTeacherInfo(teacher);
-    
-    // Obtener periodos disponibles para este docente
+
+    // Obtener periodos en los que tiene cursos
     const teacherPeriodsIds = [...new Set(
       studentCourses
         .filter(sc => sc.teacherId === teacher.id)
         .map(sc => sc.period)
     )];
-    
+
     const filteredPeriods = periods.filter(period => 
       teacherPeriodsIds.includes(period.id)
     );
-    
     setAvailablePeriods(filteredPeriods);
-    
-    // Seleccionar el primer periodo disponible si el actual no está disponible
+
+    // Si el periodo actual no está disponible para el docente, elegir el primero
     if (filteredPeriods.length > 0) {
       const isCurrentPeriodAvailable = filteredPeriods.some(p => p.id === currentPeriod);
-      if (!isCurrentPeriodAvailable) {
-        const newPeriod = filteredPeriods[0].id;
-        setSelectedPeriod(newPeriod);
-        setCurrentPeriod(newPeriod);
-        
-        // Obtener las asignaturas del docente para el periodo seleccionado
-        updateTeacherCoursesAndResults(teacher.id, newPeriod);
-      } else {
-        // Obtener las asignaturas del docente para el periodo seleccionado
-        updateTeacherCoursesAndResults(teacher.id, currentPeriod);
-      }
+      const periodToUse = isCurrentPeriodAvailable ? currentPeriod : filteredPeriods[0].id;
+      setSelectedPeriod(periodToUse);
+      setCurrentPeriod(periodToUse);
     }
-  }, [currentUser, teachers, studentCourses, periods, currentPeriod, navigate]);
-  
-  // Función para actualizar cursos y resultados cuando cambia el periodo
-  const updateTeacherCoursesAndResults = (teacherId, periodId) => {
-    // Obtener las asignaturas del docente para el periodo seleccionado
+  }, [currentUser, teachers, studentCourses, periods, currentPeriod, navigate, setCurrentPeriod]);
+
+  // Cargar respuestas y resultados cuando cambie selectedPeriod, teacherInfo o currentSede
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!teacherInfo || !selectedPeriod || !currentSede) return;
+
+      try {
+        // 1. Obtener respuestas filtradas por periodo, sede y docente
+        const snapshot = await getDocs(collection(db2, 'results'));
+        const fetchedResponses = snapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .filter(r => 
+            r.periodId === selectedPeriod && 
+            r.sede === currentSede &&
+            r.teacherId === teacherInfo.id
+          );
+        setResponses(fetchedResponses);
+
+        // 2. Obtener resultados publicados para el periodo y sede
+        const resultsSnap = await getDoc(doc(db2, 'resultsForm', `${selectedPeriod}_${currentSede}`));
+        if (resultsSnap.exists()) {
+          setResults(resultsSnap.data());
+          setResultsPublished(true);
+        } else {
+          setResults({});
+          setResultsPublished(false);
+        }
+      } catch (error) {
+        console.error('Error al cargar respuestas o resultados:', error);
+      }
+    };
+
+    fetchData();
+  }, [teacherInfo, selectedPeriod, currentSede]);
+
+  // Actualizar cursos del docente para el periodo seleccionado
+  useEffect(() => {
+    if (!teacherInfo || !selectedPeriod) return;
+
     const teacherCoursesIds = studentCourses
-      .filter(sc => sc.teacherId === teacherId && sc.period === periodId)
+      .filter(sc => sc.teacherId === teacherInfo.id && sc.period === selectedPeriod)
       .map(sc => sc.courseId);
-    
-    // Obtener los nombres de las asignaturas sin duplicados
-    const courseNames = [];
+
+    const uniqueCourseNames = [];
     teacherCoursesIds.forEach(courseId => {
-      const courseInfo = courses.find(c => c.id === courseId);
-      if (courseInfo && !courseNames.includes(courseInfo.nombre)) {
-        courseNames.push(courseInfo.nombre);
+      const c = courses.find(c => c.id === courseId);
+      if (c && !uniqueCourseNames.includes(c.nombre)) {
+        uniqueCourseNames.push(c.nombre);
       }
     });
-    
-    setTeacherCourses(courseNames);
-    
-    // Calcular resultados por asignatura si están publicados para este periodo
-    if (areResultsPublishedForPeriod(periodId)) {
-      const resultsByCourse = getTeacherCourseResults(teacherId, periodId);
-      setCourseResults(resultsByCourse);
-    } else {
+    setTeacherCourses(uniqueCourseNames);
+  }, [teacherInfo, selectedPeriod, studentCourses, courses]);
+
+  // Calcular resultados por asignatura con respuestas y resultados ya cargados
+  useEffect(() => {
+    if (!responses.length || !teacherInfo) {
       setCourseResults([]);
+      return;
     }
-  };
-  
-  // Función para obtener resultados por asignatura para un docente en un periodo específico
-  const getTeacherCourseResults = (teacherId, periodId) => {
-    // Agrupar respuestas por curso para este docente y periodo
-    const courseResponses = {};
-    
+
+    // Agrupar respuestas por curso y calcular promedios
+    const courseResultsMap = {};
+
     responses.forEach(response => {
-      // Buscar la inscripción correspondiente para obtener el periodo
-      const enrollment = studentCourses.find(
-        sc => sc.studentId === response.studentId && 
-              sc.teacherId === response.teacherId && 
-              sc.courseId === response.courseId
-      );
-      
-      if (response.teacherId === teacherId && enrollment && enrollment.period === periodId) {
-        if (!courseResponses[response.courseId]) {
-          courseResponses[response.courseId] = {
-            courseId: response.courseId,
-            participaciones: 0,
-            totalPuntaje: 0
+      if (!courseResultsMap[response.courseId]) {
+        courseResultsMap[response.courseId] = {
+          courseId: response.courseId,
+          participaciones: 0,
+          factores: {},
+          promedioGeneral: 0,
+        };
+      }
+
+      const entry = courseResultsMap[response.courseId];
+      entry.participaciones += 1;
+
+      const factores = response.factores || {};
+      Object.entries(factores).forEach(([factorId, factor]) => {
+        if (!entry.factores[factorId]) {
+          entry.factores[factorId] = {
+            nombre: factor.nombre || 'Factor desconocido',
+            totalPuntaje: 0,
+            totalPreguntas: 0,
+            promedio: 0,
           };
         }
-        
-        // Calcular puntaje promedio de esta respuesta
-        const respuestaPuntaje = response.answers.reduce((sum, val) => sum + val, 0) / response.answers.length;
-        courseResponses[response.courseId].participaciones += 1;
-        courseResponses[response.courseId].totalPuntaje += respuestaPuntaje;
-      }
+        entry.factores[factorId].totalPuntaje += factor.totalPuntaje || 0;
+        entry.factores[factorId].totalPreguntas += factor.totalPreguntas || 0;
+      });
+
+      entry.promedioGeneral += parseFloat(response.promedioGeneral || 0);
     });
-    
-    // Convertir a array y calcular promedios
-    return Object.values(courseResponses).map(course => {
+
+    const courseResultsArr = Object.values(courseResultsMap).map(course => {
       const courseInfo = courses.find(c => c.id === course.courseId) || { nombre: 'Curso desconocido' };
+
+      Object.values(course.factores).forEach(factor => {
+        factor.promedio = factor.totalPreguntas > 0
+          ? (factor.totalPuntaje / factor.totalPreguntas).toFixed(2)
+          : '0.00';
+      });
+
       return {
         nombreAsignatura: courseInfo.nombre,
         participaciones: course.participaciones,
-        nota: (course.totalPuntaje / course.participaciones).toFixed(2)
+        factores: course.factores,
+        promedioGeneral: course.participaciones > 0
+          ? (course.promedioGeneral / course.participaciones).toFixed(2)
+          : '0.00'
       };
     });
-  };
 
-  // Manejar cambio de periodo
+    setCourseResults(courseResultsArr);
+  }, [responses, teacherInfo, courses]);
+
+  // Cambio de periodo
   const handlePeriodChange = (periodId) => {
     setSelectedPeriod(periodId);
     setCurrentPeriod(periodId);
-    
-    if (teacherInfo) {
-      updateTeacherCoursesAndResults(teacherInfo.id, periodId);
-    }
   };
 
-  // Verificar si los resultados están publicados para el periodo seleccionado
-  const resultsPublished = selectedPeriod ? areResultsPublishedForPeriod(selectedPeriod) : false;
-
-  // Función para exportar los resultados a Excel
+  // Exportar resultados a Excel
   const exportToExcel = () => {
-    if (!courseResults.length) return;
+    if (!courseResults.length || !teacherInfo) return;
+
     const wb = XLSX.utils.book_new();
-    const wsData = [
-      ['Docente', teacherInfo.nombre],
-      ['Periodo', selectedPeriod],
-      ['Promedio General', courseResults[0].promedioGeneral],
-      [''],
-      ['Factores'],
-      ['Factor', 'Promedio'],
-      ...courseResults[0].factores.map(f => [f.nombre, f.promedio])
-    ];
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-    XLSX.utils.book_append_sheet(wb, ws, 'Resultados');
-    XLSX.writeFile(wb, `Resultados_${teacherInfo.nombre.replace(/ /g, '_')}_${selectedPeriod}.xlsx`);
+
+    courseResults.forEach(course => {
+      const data = [
+        ['Docente', teacherInfo.nombre],
+        ['Periodo', selectedPeriod],
+        ['Asignatura', course.nombreAsignatura],
+        ['Participaciones', course.participaciones],
+        ['Promedio General', course.promedioGeneral],
+        [],
+        ['Resultados por Factor'],
+        ['Factor', 'Promedio']
+      ];
+
+      Object.values(course.factores).forEach(factor => {
+        data.push([factor.nombre, factor.promedio]);
+      });
+
+      const sheetName = course.nombreAsignatura.substring(0, 31) || 'Asignatura';
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    });
+
+    XLSX.writeFile(wb, `Resultados_${teacherInfo.nombre.replace(/[^a-z0-9]/gi, '_')}_${selectedPeriod}.xlsx`);
   };
 
   if (!currentUser || !teacherInfo) {
@@ -179,14 +226,14 @@ function DocentePage() {
       <h1>Portal Docente</h1>
       <div className="teacher-dashboard">
         <h2>Bienvenido(a), {teacherInfo.nombre}</h2>
-        
+
         <PeriodSelector 
           periods={availablePeriods}
           selectedPeriod={selectedPeriod}
           onSelectPeriod={handlePeriodChange}
           label="Seleccione el periodo académico:"
         />
-        
+
         <div className="teacher-info">
           <h3>Información del Docente</h3>
           <p><strong>ID:</strong> {teacherInfo.id}</p>
@@ -194,13 +241,13 @@ function DocentePage() {
           <p><strong>Periodo:</strong> {periods.find(p => p.id === selectedPeriod)?.nombre || 'No seleccionado'}</p>
           <p><strong>Asignaturas:</strong> {teacherCourses.length > 0 ? teacherCourses.join(', ') : 'No hay asignaturas asignadas para este periodo'}</p>
         </div>
-        
+
         {resultsPublished ? (
           <div className="teacher-results">
             <h3>Resultados de su Evaluación - Periodo {selectedPeriod}</h3>
             {courseResults.length > 0 ? (
               <>
-                <button className="btn-success" style={{marginBottom: '1rem'}} onClick={() => exportToExcel()}>
+                <button className="btn-success" style={{marginBottom: '1rem'}} onClick={exportToExcel}>
                   Descargar Excel
                 </button>
                 <div className="results-card">
@@ -221,7 +268,7 @@ function DocentePage() {
             <p>Por favor, vuelva a consultar más tarde.</p>
           </div>
         )}
-        
+
         <button onClick={() => navigate('/')} className="back-button">
           Volver al Inicio
         </button>
@@ -231,4 +278,3 @@ function DocentePage() {
 }
 
 export default DocentePage;
-  
