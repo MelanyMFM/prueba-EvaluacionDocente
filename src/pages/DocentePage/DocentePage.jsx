@@ -12,25 +12,26 @@ import * as XLSX from 'xlsx';
 function DocentePage() {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
-  const { 
-    teachers, 
-    studentCourses, 
-    courses, 
+  const {
+    teachers,
+    studentCourses,
+    courses,
     periods,
     currentPeriod,
-    currentSede,
     setCurrentPeriod,
-    areResultsPublishedForPeriod // si lo usas para algo más, si no puedes quitarlo
+    currentSede,
+    setCurrentSede,
+    areResultsPublishedForPeriod
   } = useContext(AppContext);
-  
+
   const [teacherInfo, setTeacherInfo] = useState(null);
   const [teacherCourses, setTeacherCourses] = useState([]);
   const [responses, setResponses] = useState([]);
   const [results, setResults] = useState({});
   const [courseResults, setCourseResults] = useState([]);
-  const [selectedPeriod, setSelectedPeriod] = useState(currentPeriod);
   const [availablePeriods, setAvailablePeriods] = useState([]);
   const [resultsPublished, setResultsPublished] = useState(false);
+  const availableSedes = ['Bogotá', 'Caribe'];
 
   useEffect(() => {
     if (!currentUser) {
@@ -38,54 +39,48 @@ function DocentePage() {
       return;
     }
 
-    // Obtener datos del docente según su email
     const teacher = teachers.find(t => t.email === currentUser.email);
     if (!teacher) {
       navigate('/login');
       return;
     }
+
     setTeacherInfo(teacher);
 
-    // Obtener periodos en los que tiene cursos
     const teacherPeriodsIds = [...new Set(
       studentCourses
         .filter(sc => sc.teacherId === teacher.id)
         .map(sc => sc.period)
     )];
 
-    const filteredPeriods = periods.filter(period => 
+    const filteredPeriods = periods.filter(period =>
       teacherPeriodsIds.includes(period.id)
     );
     setAvailablePeriods(filteredPeriods);
 
-    // Si el periodo actual no está disponible para el docente, elegir el primero
     if (filteredPeriods.length > 0) {
       const isCurrentPeriodAvailable = filteredPeriods.some(p => p.id === currentPeriod);
       const periodToUse = isCurrentPeriodAvailable ? currentPeriod : filteredPeriods[0].id;
-      setSelectedPeriod(periodToUse);
       setCurrentPeriod(periodToUse);
     }
   }, [currentUser, teachers, studentCourses, periods, currentPeriod, navigate, setCurrentPeriod]);
 
-  // Cargar respuestas y resultados cuando cambie selectedPeriod, teacherInfo o currentSede
   useEffect(() => {
     const fetchData = async () => {
-      if (!teacherInfo || !selectedPeriod || !currentSede) return;
+      if (!teacherInfo || !currentPeriod || !currentSede) return;
 
       try {
-        // 1. Obtener respuestas filtradas por periodo, sede y docente
         const snapshot = await getDocs(collection(db2, 'results'));
         const fetchedResponses = snapshot.docs
           .map(doc => ({ id: doc.id, ...doc.data() }))
-          .filter(r => 
-            r.periodId === selectedPeriod && 
+          .filter(r =>
+            r.periodId === currentPeriod &&
             r.sede === currentSede &&
             r.teacherId === teacherInfo.id
           );
         setResponses(fetchedResponses);
 
-        // 2. Obtener resultados publicados para el periodo y sede
-        const resultsSnap = await getDoc(doc(db2, 'resultsForm', `${selectedPeriod}_${currentSede}`));
+        const resultsSnap = await getDoc(doc(db2, 'resultsForm', `${currentPeriod}_${currentSede}`));
         if (resultsSnap.exists()) {
           setResults(resultsSnap.data());
           setResultsPublished(true);
@@ -99,14 +94,13 @@ function DocentePage() {
     };
 
     fetchData();
-  }, [teacherInfo, selectedPeriod, currentSede]);
+  }, [teacherInfo, currentPeriod, currentSede]);
 
-  // Actualizar cursos del docente para el periodo seleccionado
   useEffect(() => {
-    if (!teacherInfo || !selectedPeriod) return;
+    if (!teacherInfo || !currentPeriod) return;
 
     const teacherCoursesIds = studentCourses
-      .filter(sc => sc.teacherId === teacherInfo.id && sc.period === selectedPeriod)
+      .filter(sc => sc.teacherId === teacherInfo.id && sc.period === currentPeriod)
       .map(sc => sc.courseId);
 
     const uniqueCourseNames = [];
@@ -117,16 +111,14 @@ function DocentePage() {
       }
     });
     setTeacherCourses(uniqueCourseNames);
-  }, [teacherInfo, selectedPeriod, studentCourses, courses]);
+  }, [teacherInfo, currentPeriod, studentCourses, courses]);
 
-  // Calcular resultados por asignatura con respuestas y resultados ya cargados
   useEffect(() => {
     if (!responses.length || !teacherInfo) {
       setCourseResults([]);
       return;
     }
 
-    // Agrupar respuestas por curso y calcular promedios
     const courseResultsMap = {};
 
     responses.forEach(response => {
@@ -181,13 +173,6 @@ function DocentePage() {
     setCourseResults(courseResultsArr);
   }, [responses, teacherInfo, courses]);
 
-  // Cambio de periodo
-  const handlePeriodChange = (periodId) => {
-    setSelectedPeriod(periodId);
-    setCurrentPeriod(periodId);
-  };
-
-  // Exportar resultados a Excel
   const exportToExcel = () => {
     if (!courseResults.length || !teacherInfo) return;
 
@@ -196,7 +181,7 @@ function DocentePage() {
     courseResults.forEach(course => {
       const data = [
         ['Docente', teacherInfo.nombre],
-        ['Periodo', selectedPeriod],
+        ['Periodo', currentPeriod],
         ['Asignatura', course.nombreAsignatura],
         ['Participaciones', course.participaciones],
         ['Promedio General', course.promedioGeneral],
@@ -214,7 +199,7 @@ function DocentePage() {
       XLSX.utils.book_append_sheet(wb, ws, sheetName);
     });
 
-    XLSX.writeFile(wb, `Resultados_${teacherInfo.nombre.replace(/[^a-z0-9]/gi, '_')}_${selectedPeriod}.xlsx`);
+    XLSX.writeFile(wb, `Resultados_${teacherInfo.nombre.replace(/[^a-z0-9]/gi, '_')}_${currentPeriod}.xlsx`);
   };
 
   if (!currentUser || !teacherInfo) {
@@ -227,33 +212,46 @@ function DocentePage() {
       <div className="teacher-dashboard">
         <h2>Bienvenido(a), {teacherInfo.nombre}</h2>
 
-        <PeriodSelector 
+        <PeriodSelector
           periods={availablePeriods}
-          selectedPeriod={selectedPeriod}
-          onSelectPeriod={handlePeriodChange}
+          selectedPeriod={currentPeriod}
+          onSelectPeriod={setCurrentPeriod}
           label="Seleccione el periodo académico:"
         />
+
+        <div style={{ margin: '1rem 0' }}>
+          <label><strong>Seleccione la sede:</strong></label>
+          <select
+            value={currentSede || ''}
+            onChange={(e) => setCurrentSede(e.target.value)}
+            style={{ marginLeft: '1rem' }}
+          >
+            <option value="">-- Seleccione una sede --</option>
+            {availableSedes.map(sede => (
+              <option key={sede} value={sede}>{sede}</option>
+            ))}
+          </select>
+        </div>
 
         <div className="teacher-info">
           <h3>Información del Docente</h3>
           <p><strong>ID:</strong> {teacherInfo.id}</p>
           <p><strong>Email:</strong> {teacherInfo.email}</p>
-          <p><strong>Periodo:</strong> {periods.find(p => p.id === selectedPeriod)?.nombre || 'No seleccionado'}</p>
+          <p><strong>Periodo:</strong> {periods.find(p => p.id === currentPeriod)?.nombre || 'No seleccionado'}</p>
           <p><strong>Asignaturas:</strong> {teacherCourses.length > 0 ? teacherCourses.join(', ') : 'No hay asignaturas asignadas para este periodo'}</p>
         </div>
 
         {resultsPublished ? (
           <div className="teacher-results">
-            <h3>Resultados de su Evaluación - Periodo {selectedPeriod}</h3>
+            <h3>Resultados de su Evaluación - Periodo {currentPeriod}</h3>
             {courseResults.length > 0 ? (
               <>
-                <button className="btn-success" style={{marginBottom: '1rem'}} onClick={exportToExcel}>
+                <button className="btn-success" style={{ marginBottom: '1rem' }} onClick={exportToExcel}>
                   Descargar Excel
                 </button>
                 <div className="results-card">
-                  <ResultadosEncuesta 
-                    teacherName={teacherInfo.nombre}
-                    courseResults={courseResults}
+                  <ResultadosEncuesta
+                    teacherId={teacherInfo.id}
                     showTeacherName={false}
                   />
                 </div>
@@ -264,7 +262,7 @@ function DocentePage() {
           </div>
         ) : (
           <div className="no-results">
-            <p>Los resultados de la evaluación para el periodo {selectedPeriod} aún no han sido publicados.</p>
+            <p>Los resultados de la evaluación para el periodo {currentPeriod} aún no han sido publicados.</p>
             <p>Por favor, vuelva a consultar más tarde.</p>
           </div>
         )}

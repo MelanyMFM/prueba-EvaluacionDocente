@@ -22,6 +22,13 @@ function ResultadosTab() {
   } = useContext(AppContext);
 
   useEffect(() => {
+    const teacherIds = Object.keys(results);
+    if (teacherIds.length > 0 && !selectedTeacher) {
+      setSelectedTeacher(teacherIds[0]);
+    }
+  }, [results, selectedTeacher]);
+
+  useEffect(() => {
     const fetchData = async () => {
       try {
         // 1. Obtener responses desde la colección 'results'
@@ -190,14 +197,13 @@ function ResultadosTab() {
                 <div
                   key={teacherId}
                   className={`teacher-item ${selectedTeacher === teacherId ? 'selected' : ''}`}
-                  onClick={() => setSelectedTeacher(selectedTeacher === teacherId ? null : teacherId)}
+                  onClick={() => setSelectedTeacher(selectedTeacher === teacherId ? null : teacherId)} 
                 >
                   <span className="teacher-name">{results[teacherId].nombre}</span>
                   <span className="teacher-score">Promedio: {results[teacherId].promedioGeneral}</span>
                 </div>
               ))}
             </div>
-
             {selectedTeacher && (
               <div className="teacher-results-detail">
                 <div className="results-header">
@@ -205,12 +211,11 @@ function ResultadosTab() {
                   <button onClick={exportToExcel} className="btn-secondary">Exportar a Excel</button>
                 </div>
                 <ResultadosEncuesta
-                  teacherName={results[selectedTeacher].nombre}
-                  courseResults={getTeacherCourseResults(selectedTeacher)}
-                  showTeacherName={false}
+                  teacherId={selectedTeacher}
                 />
               </div>
             )}
+
           </div>
         )}
       </div>
