@@ -28,7 +28,8 @@ function EstudiantePage() {
     periods,
     currentPeriod,
     setCurrentPeriod,
-    isEncuestaActivaForPeriod,
+    encuestaActiva,
+    currentSede,
     responses
   } = useContext(AppContext);
   
@@ -39,7 +40,32 @@ function EstudiantePage() {
   const [selectedPeriod, setSelectedPeriod] = useState(currentPeriod);
   const [availablePeriods, setAvailablePeriods] = useState([]);
   const [error, setError] = useState(null);
-  
+  const sedesDisponibles = ['Caribe', 'Bogotá'];
+  const [selectedSede, setSelectedSede] = useState('Caribe'); 
+
+  const [loading, setLoading] = useState(true);
+
+  const isEncuestaActivaForPeriod = (periodId) => {
+    if (!periodId || !encuestaActiva) return false;
+    return encuestaActiva[selectedSede] === true;
+  };
+
+  useEffect(() => {
+    // Esperar a que colecciones estén cargadas
+    if (
+      students.length === 0 || 
+      periods.length === 0 || 
+      studentCourses.length === 0 ||
+      courses.length === 0 ||
+      teachers.length === 0
+    ) {
+      setLoading(true);
+    } else {
+      setLoading(false);
+    }
+  }, [students, periods, studentCourses, courses, teachers]);
+
+
   /**
    * Effect to handle user authentication and data initialization
    * - Checks user authentication
@@ -94,14 +120,10 @@ function EstudiantePage() {
     }
   }, [currentUser, userRoles, students, studentCourses, periods, currentPeriod, navigate, selectedPeriod]);
   
-  /**
-   * Get student's courses for the selected period
-   * @returns {Array} List of courses with evaluation status
-   */
+
   const getStudentCourses = () => {
     const student = students.find(s => s.email === currentUser.email);
     if (!student) {
-      // Return example courses for temporary student
       return [{
         teacherId: teachers[0]?.id,
         teacherName: teachers[0]?.nombre || 'Profesor Ejemplo',
@@ -113,19 +135,20 @@ function EstudiantePage() {
         isEvaluated: false
       }];
     }
-
-    // Get courses for registered student
+  
     const studentCoursesData = studentCourses.filter(
       sc => sc.studentId === student.id && sc.period === selectedPeriod
     );
-    
-    // Agrupar cursos por docente
+  
     const teacherGroups = {};
-    
+  
     studentCoursesData.forEach(sc => {
       const course = courses.find(c => c.id === sc.courseId);
       const teacher = teachers.find(t => t.id === sc.teacherId);
-      
+  
+      // ❗ Aquí filtramos por sede
+      if (!course || course.sede !== selectedSede) return;
+  
       if (!teacherGroups[sc.teacherId]) {
         teacherGroups[sc.teacherId] = {
           teacherId: sc.teacherId,
@@ -134,28 +157,27 @@ function EstudiantePage() {
           isEvaluated: false
         };
       }
-      
-      // Agregar el curso a la lista de cursos del docente
+  
       teacherGroups[sc.teacherId].courses.push({
         courseId: sc.courseId,
         courseName: course ? course.nombre : 'Curso Desconocido',
         group: sc.group
       });
-      
-      // Verificar si el docente ya ha sido evaluado
+  
       const isEvaluated = responses.some(
         r => r.studentId === student.id && 
              r.teacherId === sc.teacherId && 
              r.periodId === selectedPeriod
       );
-      
+  
       if (isEvaluated) {
         teacherGroups[sc.teacherId].isEvaluated = true;
       }
     });
-    
+  
     return Object.values(teacherGroups);
   };
+  
   
   /**
    * Handle teacher selection for evaluation
@@ -220,6 +242,17 @@ function EstudiantePage() {
     <div className="student-container">
       <h1>Portal del Estudiante</h1>
       <div className="student-dashboard">
+
+      <div className="sede-selector">
+  <label><strong>Seleccione su sede:</strong></label>
+  <select value={selectedSede} onChange={(e) => setSelectedSede(e.target.value)}>
+    {sedesDisponibles.map((sede) => (
+      <option key={sede} value={sede}>{sede}</option>
+    ))}
+  </select>
+</div>
+
+
         <PeriodSelector 
           periods={availablePeriods}
           selectedPeriod={selectedPeriod}

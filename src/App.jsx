@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { AuthProvider } from './contexts/AuthContext';
 import PrivateRoute from './components/PrivateRoute/PrivateRoute';
 import Navbar from './components/Navbar/Navbar';
@@ -8,7 +9,11 @@ import AdminPage from "./pages/AdminPage/AdminPage";
 import DocentePage from "./pages/DocentePage/DocentePage";
 import Login from "./pages/Login/Login";
 
+import { uploadInitialData } from '../src/firebase/initData.js';
+
 const App = () => {
+  
+
   return (
     <AuthProvider>
       <Router>

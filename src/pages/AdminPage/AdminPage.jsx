@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { AppContext } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import EncuestaTab from "../../components/AdminTabs/EncuestaTab/EncuestaTab";
@@ -24,82 +24,121 @@ function AdminPage() {
     periods,
     currentPeriod,
     setCurrentPeriod,
-    isEncuestaActivaForPeriod,
-    areResultsPublishedForPeriod,
-    studentCourses
+    studentCourses,
+    courses,
+    currentSede,
+    setCurrentSede // opcional si deseas sincronizar la sede seleccionada
   } = useContext(AppContext);
 
+  const sedesDisponibles = ['Caribe', 'Bogotá'];
   const [activeTab, setActiveTab] = useState('encuesta');
-  const [selectedPeriod, setSelectedPeriod] = useState(currentPeriod);
+  const [selectedPeriod, setSelectedPeriod] = useState(currentPeriod || (periods.length > 0 ? periods[0].id : null));
+  const [selectedSede, setSelectedSede] = useState(currentSede); // nuevo estado
 
-  // Manejar cambio de periodo
+  useEffect(() => {
+    if (currentPeriod !== selectedPeriod) {
+      setSelectedPeriod(currentPeriod);
+    }
+  }, [currentPeriod]);
+
+  useEffect(() => {
+    if (setCurrentSede) {
+      setCurrentSede(selectedSede);
+    }
+  }, [selectedSede, setCurrentSede]);
+
   const handlePeriodChange = (periodId) => {
     setSelectedPeriod(periodId);
     setCurrentPeriod(periodId);
   };
 
-  // Verificar si la encuesta está activa para el periodo seleccionado
-  const isEncuestaActiva = selectedPeriod ? isEncuestaActivaForPeriod(selectedPeriod) : false;
+  const handleSedeChange = (sede) => {
+    setSelectedSede(sede);
+  };
 
-  // Función para activar/desactivar la encuesta para el periodo seleccionado
+  const isEncuestaActiva = () => {
+    if (!selectedPeriod || !encuestaActiva) return false;
+    return encuestaActiva[selectedSede] === true;
+  };
+
+  const isResultsPublished = () => {
+    if (!selectedPeriod || !resultsPublished) return false;
+    return resultsPublished[selectedSede] === true;
+  };
+
   const handleToggleEncuesta = () => {
-    toggleEncuestaActivaForPeriod(selectedPeriod, !isEncuestaActiva);
+    toggleEncuestaActivaForPeriod(selectedPeriod, selectedSede, !isEncuestaActiva());
   };
 
-  // Verificar si los resultados están publicados para el periodo seleccionado
-  const isResultsPublished = selectedPeriod ? areResultsPublishedForPeriod(selectedPeriod) : false;
-
-  // Función para publicar resultados para el periodo seleccionado
   const handlePublishResults = () => {
-    publishResults(selectedPeriod);
+    publishResults(); // asume que usa currentPeriod y currentSede
   };
+
+  const filteredResponses = responses.filter(r => {
+    const enrollment = studentCourses.find(
+      sc => sc.studentId === r.studentId &&
+            sc.teacherId === r.teacherId &&
+            sc.courseId === r.courseId &&
+            sc.period === selectedPeriod
+    );
+    if (!enrollment) return false;
+
+    const course = courses.find(c => c.id === enrollment.courseId);
+    return course?.sede === selectedSede;
+  });
+
+  const resultsKey = `${selectedPeriod}_${selectedSede}`;
+  const resultsForPeriod = results[resultsKey] || {};
 
   return (
     <div className="admin-container">
       <h1>Panel de Administración</h1>
-      
-      <PeriodSelector 
-        periods={periods}
-        selectedPeriod={selectedPeriod}
-        onSelectPeriod={handlePeriodChange}
-        label="Seleccione el periodo académico:"
-      />
-      
+
+      <div className="selectors-container">
+        <PeriodSelector 
+          periods={periods}
+          selectedPeriod={selectedPeriod}
+          onSelectPeriod={handlePeriodChange}
+          label="Seleccione el periodo académico:"
+        />
+
+        <div className="sede-selector">
+          <label><strong>Seleccione la sede:</strong></label>
+          <select
+            value={selectedSede}
+            onChange={(e) => handleSedeChange(e.target.value)}
+          >
+            {sedesDisponibles.map(sede => (
+              <option key={sede} value={sede}>{sede}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       <div className="admin-tabs">
-        <button
-          className={activeTab === 'encuesta' ? 'active' : ''}
-          onClick={() => setActiveTab('encuesta')}
-        >
+        <button className={activeTab === 'encuesta' ? 'active' : ''} onClick={() => setActiveTab('encuesta')}>
           Estado de la Encuesta
         </button>
-        <button
-          className={activeTab === 'preguntas' ? 'active' : ''}
-          onClick={() => setActiveTab('preguntas')}
-        >
+        <button className={activeTab === 'preguntas' ? 'active' : ''} onClick={() => setActiveTab('preguntas')}>
           Preguntas
         </button>
-        <button
-          className={activeTab === 'resultados' ? 'active' : ''}
-          onClick={() => setActiveTab('resultados')}
-        >
+        <button className={activeTab === 'resultados' ? 'active' : ''} onClick={() => setActiveTab('resultados')}>
           Resultados
         </button>
-        <button
-          className={activeTab === 'programacion' ? 'active' : ''}
-          onClick={() => setActiveTab('programacion')}
-        >
+        <button className={activeTab === 'programacion' ? 'active' : ''} onClick={() => setActiveTab('programacion')}>
           Programación Académica
         </button>
       </div>
-      
+
       <div className="admin-content">
         {activeTab === 'encuesta' && (
           <EncuestaTab 
-            encuestaActiva={isEncuestaActiva} 
+            encuestaActiva={isEncuestaActiva()} 
             setEncuestaActiva={handleToggleEncuesta} 
+            currentSede={selectedSede}
           />
         )}
-        
+
         {activeTab === 'preguntas' && (
           <PreguntasTab 
             questions={questions}
@@ -108,29 +147,21 @@ function AdminPage() {
             setQuestionWeights={setQuestionWeights}
           />
         )}
-        
+
         {activeTab === 'resultados' && (
           <ResultadosTab 
-            resultsPublished={isResultsPublished}
+            resultsPublished={isResultsPublished()}
             publishResults={handlePublishResults}
-            responses={responses.filter(r => {
-              // Filtrar respuestas por periodo
-              const enrollment = studentCourses.find(
-                sc => sc.studentId === r.studentId && 
-                      sc.teacherId === r.teacherId && 
-                      sc.courseId === r.courseId
-              );
-              return enrollment && enrollment.period === selectedPeriod;
-            })}
-            results={results[selectedPeriod] || {}}
+            responses={filteredResponses}
+            results={resultsForPeriod}
           />
         )}
-        
+
         {activeTab === 'programacion' && (
           <ProgramacionTab selectedPeriod={selectedPeriod} />
         )}
       </div>
-      
+
       <button onClick={() => navigate('/')} className="back-button">
         Volver al Inicio
       </button>
