@@ -243,8 +243,23 @@ const eliminarPregunta = async (id) => {
   };
 
   // Función para agregar una respuesta
-  const addResponse = (r) => {
-    setResponses(prev => [...prev, r]);
+  const addResponse = async (response) => {
+    try {
+      // Crear un ID único combinando atributos claves
+      const responseId = `${response.studentId}_${response.teacherId}_${response.courseId}_${response.periodId}`;
+  
+      // Referencia a documento con ID personalizado
+      const responseRef = doc(db2, 'results', responseId);
+  
+      // Guardar documento con ese ID (setDoc sobrescribe si existe)
+      await setDoc(responseRef, response);
+  
+      // Actualizar estado local si tienes (opcional)
+      setResponses(prev => [...prev.filter(r => r.id !== responseId), {...response, id: responseId}]);
+    } catch (error) {
+      console.error("Error guardando respuesta:", error);
+      throw error;
+    }
   };
 
   return (

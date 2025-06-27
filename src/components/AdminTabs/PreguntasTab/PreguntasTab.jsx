@@ -58,9 +58,7 @@ function PreguntasTab() {
   const saveEdit = async () => {
     const q = localPreguntas[editingIndex];
   
-    const idStr = String(q.id); // convertir a string
-  
-    console.log('ID de la pregunta a editar (string):', idStr, typeof idStr);
+    const idStr = String(q.id); 
   
     const ref = doc(db2, 'questions', idStr);
   
