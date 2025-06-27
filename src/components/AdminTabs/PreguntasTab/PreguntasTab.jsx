@@ -1,56 +1,51 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { AppContext } from '../../../context/AppContext';
+import { collection, getDocs, updateDoc, addDoc, deleteDoc, doc } from 'firebase/firestore';
+import { db2 } from '../../../firebaseApp2'; // Asegúrate de tener esta ruta correcta
 import './preguntasTab.css';
 
-function PreguntasTab({ questions, setQuestions, questionWeights, setQuestionWeights }) {
-  const { factoresDisponibles, tiposRespuestaDisponibles } = useContext(AppContext);
-
-  const [newQuestion, setNewQuestion] = useState('');
-  const [newWeight, setNewWeight] = useState(10);
-  const [newFactor, setNewFactor] = useState(1);
-  const [newTipoRespuesta, setNewTipoRespuesta] = useState(tiposRespuestaDisponibles.BINARIA);
-
+function PreguntasTab() {
+  const { factoresDisponibles, tiposRespuestaDisponibles, preguntas, cargarPreguntas } = useContext(AppContext);
   const [editingIndex, setEditingIndex] = useState(-1);
   const [editText, setEditText] = useState('');
   const [editFactor, setEditFactor] = useState(1);
   const [editTipoRespuesta, setEditTipoRespuesta] = useState(tiposRespuestaDisponibles.BINARIA);
+  const [newQuestion, setNewQuestion] = useState('');
+  const [newFactor, setNewFactor] = useState(1);
+  const [newTipoRespuesta, setNewTipoRespuesta] = useState(tiposRespuestaDisponibles.BINARIA);
 
-  const handleAddQuestion = () => {
-    if (newQuestion.trim() === '') return;
+  const [localPreguntas, setLocalPreguntas] = useState([]);
 
-    const newQuestionObj = {
-      id: questions.length > 0 ? Math.max(...questions.map(q => q.id || 0)) + 1 : 1,
+  useEffect(() => {
+    setLocalPreguntas(preguntas || []);
+  }, [preguntas]);
+
+  const handleAddQuestion = async () => {
+    if (!newQuestion.trim()) return;
+
+    await addDoc(collection(db2, 'questions'), {
       texto: newQuestion,
       factor: newFactor,
       tipoRespuesta: newTipoRespuesta
-    };
-
-    setQuestions([...questions, newQuestionObj]);
-    setQuestionWeights([...questionWeights, newWeight]);
+    });
 
     setNewQuestion('');
-    setNewWeight(10);
     setNewFactor(1);
     setNewTipoRespuesta(tiposRespuestaDisponibles.BINARIA);
+    cargarPreguntas();
   };
 
-  const handleRemoveQuestion = (index) => {
-    setQuestions(questions.filter((_, i) => i !== index));
-    setQuestionWeights(questionWeights.filter((_, i) => i !== index));
-  };
-
-  const handleWeightChange = (index, value) => {
-    const updated = [...questionWeights];
-    updated[index] = parseInt(value);
-    setQuestionWeights(updated);
+  const handleRemoveQuestion = async (id) => {
+    await deleteDoc(doc(db2, 'questions', id));
+    cargarPreguntas();
   };
 
   const startEditing = (index) => {
-    const question = questions[index];
+    const q = localPreguntas[index];
     setEditingIndex(index);
-    setEditText(question.texto);
-    setEditFactor(question.factor);
-    setEditTipoRespuesta(question.tipoRespuesta);
+    setEditText(q.texto);
+    setEditFactor(q.factor);
+    setEditTipoRespuesta(q.tipoRespuesta);
   };
 
   const cancelEditing = () => {
@@ -60,38 +55,38 @@ function PreguntasTab({ questions, setQuestions, questionWeights, setQuestionWei
     setEditTipoRespuesta(tiposRespuestaDisponibles.BINARIA);
   };
 
-  const saveEdit = () => {
-    if (editText.trim() === '') return;
-
-    const updatedQuestions = [...questions];
-    updatedQuestions[editingIndex] = {
-      ...updatedQuestions[editingIndex],
+  const saveEdit = async () => {
+    const q = localPreguntas[editingIndex];
+  
+    const idStr = String(q.id); // convertir a string
+  
+    console.log('ID de la pregunta a editar (string):', idStr, typeof idStr);
+  
+    const ref = doc(db2, 'questions', idStr);
+  
+    await updateDoc(ref, {
       texto: editText,
       factor: editFactor,
       tipoRespuesta: editTipoRespuesta
-    };
-
-    setQuestions(updatedQuestions);
+    });
+  
     cancelEditing();
+    cargarPreguntas();
   };
+  
+  
 
   return (
     <div className="preguntas-tab">
       <h2>Preguntas de la Encuesta</h2>
       <div className="questions-list">
-        {questions.map((question, index) => (
-          <div key={index} className="question-item">
+        {localPreguntas.map((q, index) => (
+          <div key={q.id} className="question-item">
             {editingIndex === index ? (
               <div className="question-edit">
-                <input
-                  type="text"
-                  value={editText}
-                  onChange={(e) => setEditText(e.target.value)}
-                />
+                <input value={editText} onChange={(e) => setEditText(e.target.value)} />
                 <select value={editFactor} onChange={(e) => setEditFactor(parseInt(e.target.value))}>
-                  {factoresDisponibles.map(f => (
-                    <option key={f.id} value={f.id}>{f.nombre}</option>
-                  ))}
+                  {factoresDisponibles.map(f => <option key={f.id} value={f.id}>{f.nombre}</option>)}
                 </select>
                 <select value={editTipoRespuesta} onChange={(e) => setEditTipoRespuesta(e.target.value)}>
                   <option value={tiposRespuestaDisponibles.BINARIA}>Sí/No</option>
@@ -99,27 +94,19 @@ function PreguntasTab({ questions, setQuestions, questionWeights, setQuestionWei
                   <option value={tiposRespuestaDisponibles.FRECUENCIA_NA}>Frecuencia con N/A</option>
                   <option value={tiposRespuestaDisponibles.VALORACION}>Valoración</option>
                 </select>
-                <button onClick={saveEdit} className="btn-success">Guardar</button>
-                <button onClick={cancelEditing} className="btn-secondary">Cancelar</button>
+                <button onClick={saveEdit}>Guardar</button>
+                <button onClick={cancelEditing}>Cancelar</button>
               </div>
             ) : (
               <>
-                <span>{index + 1}. {question.texto}</span>
+                <span>{index + 1}. {q.texto}</span>
                 <div className="question-metadata">
-                  <span>Factor: {factoresDisponibles.find(f => f.id === question.factor)?.nombre || 'N/A'}</span>
-                  <span>Tipo: {question.tipoRespuesta}</span>
+                  <span>Factor: {factoresDisponibles.find(f => f.id === q.factor)?.nombre}</span>
+                  <span>Tipo: {q.tipoRespuesta}</span>
                 </div>
                 <div className="question-actions">
-                  <label>Peso:</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={questionWeights[index]}
-                    onChange={(e) => handleWeightChange(index, e.target.value)}
-                  />
-                  <button onClick={() => startEditing(index)} className="btn-primary">Editar</button>
-                  <button onClick={() => handleRemoveQuestion(index)} className="btn-danger">Eliminar</button>
+                  <button onClick={() => startEditing(index)}>Editar</button>
+                  <button onClick={() => handleRemoveQuestion(q.id)}>Eliminar</button>
                 </div>
               </>
             )}
@@ -129,23 +116,9 @@ function PreguntasTab({ questions, setQuestions, questionWeights, setQuestionWei
 
       <div className="add-question">
         <h3>Agregar Nueva Pregunta</h3>
-        <input
-          type="text"
-          value={newQuestion}
-          onChange={(e) => setNewQuestion(e.target.value)}
-          placeholder="Escriba la pregunta"
-        />
-        <input
-          type="number"
-          min="1"
-          max="10"
-          value={newWeight}
-          onChange={(e) => setNewWeight(parseInt(e.target.value))}
-        />
+        <input value={newQuestion} onChange={(e) => setNewQuestion(e.target.value)} placeholder="Texto de la pregunta" />
         <select value={newFactor} onChange={(e) => setNewFactor(parseInt(e.target.value))}>
-          {factoresDisponibles.map(f => (
-            <option key={f.id} value={f.id}>{f.nombre}</option>
-          ))}
+          {factoresDisponibles.map(f => <option key={f.id} value={f.id}>{f.nombre}</option>)}
         </select>
         <select value={newTipoRespuesta} onChange={(e) => setNewTipoRespuesta(e.target.value)}>
           <option value={tiposRespuestaDisponibles.BINARIA}>Sí/No</option>
@@ -153,7 +126,7 @@ function PreguntasTab({ questions, setQuestions, questionWeights, setQuestionWei
           <option value={tiposRespuestaDisponibles.FRECUENCIA_NA}>Frecuencia con N/A</option>
           <option value={tiposRespuestaDisponibles.VALORACION}>Valoración</option>
         </select>
-        <button onClick={handleAddQuestion} className="btn-success">Agregar</button>
+        <button onClick={handleAddQuestion}>Agregar</button>
       </div>
     </div>
   );

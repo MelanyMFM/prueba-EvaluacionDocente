@@ -141,10 +141,7 @@ function AdminPage() {
 
         {activeTab === 'preguntas' && (
           <PreguntasTab 
-            questions={questions}
-            setQuestions={setQuestions}
-            questionWeights={questionWeights}
-            setQuestionWeights={setQuestionWeights}
+            
           />
         )}
 
